@@ -1,0 +1,1248 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+:root {
+  --bg-dark: #0a0a0f;
+  --glass-bg: rgba(18, 18, 25, 0.65);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-glow: rgba(255, 255, 255, 0.02);
+  --text-main: #f0f0f5;
+  --text-muted: #9aa0a6;
+  --accent-color: #4da6ff;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body, html {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background-color: var(--bg-dark);
+  color: var(--text-main);
+}
+
+#root {
+  width: 100%;
+  height: 100%;
+}
+
+.app-container {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+}
+
+/* Canvas container */
+.canvas-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+}
+
+/* UI Overlay - Glassmorphism effects */
+.ui-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none; /* Let clicks pass through to canvas */
+  z-index: 10;
+  display: flex;
+  justify-content: space-between;
+  padding: 2rem;
+}
+
+.header {
+  position: absolute;
+  top: 2rem;
+  left: 2rem;
+  pointer-events: auto;
+  animation: fadeInDown 0.8s ease-out;
+}
+
+.header h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  background: linear-gradient(90deg, #ffffff, #a3a3b5);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 0.5rem;
+}
+
+.header p {
+  color: var(--text-muted);
+  font-size: 1rem;
+  font-weight: 400;
+}
+
+/* Left side navigation/menu */
+.sidebar {
+  position: absolute;
+  top: 7.5rem;
+  left: 2rem;
+  bottom: 4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  pointer-events: auto;
+  width: 260px;
+}
+
+.search-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.search-icon {
+  position: absolute;
+  left: 1rem;
+  color: #a3a3b5;
+  pointer-events: none;
+}
+
+.search-box {
+  background: rgba(45, 45, 60, 0.75);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  color: var(--text-main);
+  padding: 0.9rem 1rem 0.9rem 2.8rem;
+  border-radius: 14px;
+  font-family: inherit;
+  font-size: 0.95rem;
+  width: 100%;
+  outline: none;
+  transition: all 0.3s;
+}
+
+.search-box:focus {
+  border-color: var(--accent-color);
+  box-shadow: 0 0 15px rgba(77, 166, 255, 0.3);
+  background: rgba(30, 30, 40, 0.9);
+}
+
+.search-box::placeholder {
+  color: var(--text-muted);
+}
+
+.region-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  overflow-y: auto;
+  padding-right: 8px;
+  flex: 1;
+}
+
+.region-list::-webkit-scrollbar {
+  width: 6px;
+}
+.region-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+.region-list::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 10px;
+}
+
+.region-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.region-group-title {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-muted);
+  margin-top: 0.5rem;
+  margin-bottom: 0.25rem;
+  padding-left: 0.5rem;
+}
+
+.region-list::-webkit-scrollbar {
+  width: 6px;
+}
+.region-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+.region-list::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 10px;
+}
+
+.region-btn {
+  background: var(--glass-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 4px 12px var(--glass-glow);
+  color: var(--text-main);
+  padding: 1rem 1.5rem;
+  border-radius: 12px;
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  text-align: left;
+}
+
+.region-btn:hover {
+  transform: translateX(8px);
+  background: rgba(30, 30, 40, 0.8);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.region-btn.active {
+  background: rgba(40, 40, 55, 0.9);
+  border-color: var(--accent-color);
+  box-shadow: 0 0 20px rgba(77, 166, 255, 0.2);
+}
+
+.color-indicator {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  display: inline-block;
+  box-shadow: 0 0 8px currentColor;
+}
+
+
+
+/* Loading screen */
+.loader-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: var(--bg-dark);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 100;
+  color: white;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(255,255,255,0.1);
+  border-radius: 50%;
+  border-top-color: var(--accent-color);
+  animation: spin 1s ease-in-out infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Instructions Toast */
+.instruction-toast {
+  position: absolute;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--glass-bg);
+  backdrop-filter: blur(10px);
+  padding: 0.75rem 1.5rem;
+  border-radius: 30px;
+  border: 1px solid var(--glass-border);
+  font-size: 0.9rem;
+  color: #e0e0e0;
+  pointer-events: auto;
+  animation: fadeInUp 0.8s 1s backwards;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 20px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+/* Credits Panel */
+.credits-panel {
+  position: absolute;
+  top: 2rem;
+  right: 1rem;
+  background: var(--glass-bg);
+  backdrop-filter: blur(16px);
+  padding: 0.75rem 1.25rem;
+  border-radius: 14px;
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  animation: fadeInRight 0.8s 1.2s backwards;
+  max-width: 200px;
+}
+
+.credits-title {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--accent-color);
+  margin-bottom: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.credits-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.credits-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.credits-role {
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.credits-name {
+  font-size: 0.8rem;
+  color: var(--text-main);
+  padding-left: 0.4rem;
+  line-height: 1.3;
+}
+
+@keyframes fadeInRight {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* ═══════════════════════════════════════════ */
+/* 3D Annotation (Omur Etiketleri)           */
+/* ═══════════════════════════════════════════ */
+
+.annotation-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  pointer-events: auto;
+  --line-width: 80px;
+  --accent: #fff;
+}
+
+/* Sağ tarafa çıkan etiketler */
+.annotation-wrapper.right {
+  flex-direction: row;
+  transform: translate(0, -50%);
+}
+
+/* Sol tarafa çıkan etiketler */
+.annotation-wrapper.left {
+  flex-direction: row-reverse;
+  transform: translate(-100%, -50%);
+}
+
+/* Kemiğin üzerindeki parlayan nokta */
+.annotation-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  z-index: 2;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.annotation-wrapper.right .annotation-dot {
+  left: -4px;
+}
+
+.annotation-wrapper.left .annotation-dot {
+  right: -4px;
+}
+
+/* Noktadan karta giden çizgi */
+.annotation-line {
+  width: var(--line-width);
+  height: 1px;
+  background: linear-gradient(90deg, var(--accent), rgba(255,255,255,0.15));
+  flex-shrink: 0;
+}
+
+.annotation-wrapper.left .annotation-line {
+  background: linear-gradient(270deg, var(--accent), rgba(255,255,255,0.15));
+}
+
+/* Bilgi Kartı */
+.annotation-card {
+  background: rgba(10, 10, 18, 0.88);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  padding: 0.5rem 0.75rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-width: 120px;
+  max-width: 280px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+}
+
+.annotation-card:hover {
+  background: rgba(15, 15, 25, 0.95);
+  border-color: var(--accent);
+  box-shadow: 0 4px 24px rgba(0,0,0,0.6), 0 0 8px var(--accent);
+}
+
+.annotation-card.expanded {
+  max-width: 320px;
+  padding: 0.75rem 1rem;
+}
+
+/* Kart Başlığı */
+.annotation-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.annotation-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  height: 22px;
+  border-radius: 6px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #000;
+  letter-spacing: 0.5px;
+  flex-shrink: 0;
+  padding: 0 4px;
+}
+
+.annotation-name {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #eee;
+  white-space: nowrap;
+}
+
+/* Genişletilmiş Detaylar */
+.annotation-details {
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid rgba(255,255,255,0.08);
+  animation: annotationFadeIn 0.3s ease;
+}
+
+@keyframes annotationFadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.annotation-function {
+  font-size: 0.72rem;
+  line-height: 1.5;
+  color: #b0b5bb;
+  margin-bottom: 0.5rem;
+}
+
+.annotation-path-title {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #ccc;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin-bottom: 0.4rem;
+}
+
+.annotation-path-item {
+  background: rgba(255,255,255,0.04);
+  border-left: 2px solid var(--accent);
+  border-radius: 4px;
+  padding: 0.35rem 0.5rem;
+  margin-bottom: 0.35rem;
+}
+
+.annotation-path-name {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #e0e0e0;
+  margin-bottom: 2px;
+}
+
+.annotation-path-detail {
+  font-size: 0.62rem;
+  color: #888;
+  line-height: 1.4;
+}
+
+/* ═══════════════════════════════════════════ */
+/* Kamera Bakış Yönü Seçici (Saydam & Fütüristik) */
+/* ═══════════════════════════════════════════ */
+.view-selector {
+  position: absolute;
+  bottom: 2rem;
+  right: 2rem;
+  background: rgba(15, 15, 25, 0.75);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  z-index: 100;
+  transition: all 0.3s ease;
+}
+
+.view-selector-title {
+  font-size: 0.68rem;
+  font-weight: 800;
+  color: #8892b0;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.view-selector-buttons {
+  display: flex;
+  gap: 6px;
+}
+
+.view-selector-buttons button {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #e2e8f0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.view-selector-buttons button:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.3);
+  color: #fff;
+  transform: translateY(-1px);
+}
+
+.view-selector-buttons button.reset-btn {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: rgba(239, 68, 68, 0.3);
+  color: #fca5a5;
+}
+
+.view-selector-buttons button.reset-btn:hover {
+  background: rgba(239, 68, 68, 0.3);
+  border-color: rgba(239, 68, 68, 0.5);
+  color: #fff;
+}
+
+/* 📋 Sağ Detay Paneli (Sağdan kayarak açılan şık cam panel) */
+.info-panel {
+  position: absolute;
+  top: 50%;
+  right: 2rem;
+  transform: translateY(-50%) translateX(0);
+  width: 380px;
+  max-height: 85vh;
+  background: var(--glass-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+  border-radius: 20px;
+  padding: 2rem;
+  display: none; /* Hide on PC to avoid double-rendering; only show floating 3D details card */
+  flex-direction: column;
+  z-index: 95;
+  transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  opacity: 1;
+}
+
+.info-panel.closed {
+  transform: translateY(-50%) translateX(calc(100% + 3rem));
+  opacity: 0;
+  pointer-events: none;
+}
+
+.info-panel-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 1.25rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.info-panel-title-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.info-panel-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  align-self: flex-start;
+  min-width: 36px;
+  height: 22px;
+  border-radius: 6px;
+  font-size: 0.65rem;
+  font-weight: 800;
+  color: #000;
+  letter-spacing: 0.5px;
+  padding: 0 6px;
+}
+
+.info-panel-header h2 {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #fff;
+  margin: 0;
+  letter-spacing: -0.2px;
+}
+
+.info-panel-close {
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 4px;
+  transition: all 0.2s;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.info-panel-close:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+}
+
+.info-panel-content {
+  flex: 1;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+/* Custom Scrollbar for Info Panel */
+.info-panel-content::-webkit-scrollbar {
+  width: 4px;
+}
+.info-panel-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+.info-panel-content::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+.info-panel-content::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.info-section {
+  margin-bottom: 1.5rem;
+}
+
+.info-section h3 {
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: #a0aec0;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin-bottom: 0.6rem;
+}
+
+.info-section p {
+  font-size: 0.82rem;
+  line-height: 1.6;
+  color: #cbd5e0;
+  margin: 0;
+}
+
+.pathology-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.pathology-card {
+  background: rgba(255, 255, 255, 0.03);
+  border-left: 3px solid #ff4d4d;
+  border-radius: 8px;
+  padding: 0.75rem 0.9rem;
+  transition: all 0.2s;
+}
+
+.pathology-card:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.pathology-card h4 {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #fff;
+  margin: 0 0 0.35rem 0;
+}
+
+.pathology-card p {
+  font-size: 0.74rem;
+  line-height: 1.5;
+  color: #a0aec0;
+  margin: 0;
+}
+
+/* ═══════════════════════════════════════════ */
+/* Drei HTML CSS Sınıfları                    */
+/* ═══════════════════════════════════════════ */
+.three-badge-container {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  cursor: pointer;
+  pointer-events: auto;
+  transform: translate(0, -50%);
+}
+
+.three-badge-container.left-aligned {
+  flex-direction: row-reverse;
+  transform: translate(-100%, -50%);
+}
+
+.three-badge-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--bone-color);
+  box-shadow: 0 0 12px var(--bone-color);
+  flex-shrink: 0;
+}
+
+.three-badge-line {
+  width: 35px;
+  height: 2px;
+  background: linear-gradient(90deg, var(--bone-color), transparent);
+}
+
+.three-badge-container.left-aligned .three-badge-line {
+  background: linear-gradient(270deg, var(--bone-color), transparent);
+}
+
+.three-badge-label {
+  background: rgba(35, 35, 45, 0.95);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid var(--bone-color-alpha);
+  border-radius: 8px;
+  padding: 4px 10px;
+  font-size: 0.65rem;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4), 0 0 12px var(--bone-color-alpha-low);
+  transition: all 0.2s;
+}
+
+.three-detail-container {
+  display: flex;
+  align-items: flex-start;
+  gap: 0;
+  pointer-events: auto;
+  transform: translateX(8px);
+}
+
+.three-detail-container.left-aligned {
+  flex-direction: row-reverse;
+  transform: translate(calc(-100% - 8px), 0);
+}
+
+.three-detail-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--bone-color);
+  box-shadow: 0 0 14px var(--bone-color);
+  flex-shrink: 0;
+  margin-top: 14px;
+}
+
+.three-detail-line {
+  width: 60px;
+  height: 2px;
+  margin-top: 19px;
+  background: linear-gradient(90deg, var(--bone-color), var(--bone-color-alpha));
+  flex-shrink: 0;
+}
+
+.three-detail-container.left-aligned .three-detail-line {
+  background: linear-gradient(270deg, var(--bone-color), var(--bone-color-alpha));
+}
+
+.three-detail-card {
+  background: rgba(10, 10, 18, 0.94);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--bone-color-alpha);
+  border-radius: 12px;
+  padding: 14px 16px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5), 0 0 16px var(--bone-color-alpha-very-low);
+  width: 280px;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.three-detail-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.three-detail-title-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.three-detail-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  height: 24px;
+  border-radius: 6px;
+  background: var(--bone-color);
+  color: #000;
+  font-size: 0.7rem;
+  font-weight: 800;
+  padding: 0 6px;
+}
+
+.three-detail-title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.three-detail-close {
+  cursor: pointer;
+  color: #666;
+  font-size: 1.1rem;
+  padding: 2px 6px;
+  border-radius: 4px;
+  transition: color 0.2s;
+}
+
+.three-detail-close:hover {
+  color: #fff;
+}
+
+.three-detail-section-box {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-bottom: 12px;
+}
+
+.three-detail-section-title {
+  font-size: 0.62rem;
+  font-weight: 700;
+  color: #999;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 4px;
+}
+
+.three-detail-section-text {
+  font-size: 0.72rem;
+  line-height: 1.6;
+  color: #c0c5cb;
+  margin: 0;
+}
+
+.three-detail-pathologies-title {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #ccc;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin-bottom: 8px;
+}
+
+.three-detail-pathology-card {
+  background: rgba(255,255,255,0.04);
+  border-left: 3px solid var(--bone-color);
+  border-radius: 6px;
+  padding: 8px 10px;
+  margin-bottom: 8px;
+}
+
+.three-detail-pathology-name {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #e8e8e8;
+  margin-bottom: 3px;
+}
+
+.three-detail-pathology-desc {
+  font-size: 0.64rem;
+  color: #999;
+  line-height: 1.5;
+}
+
+/* ═══════════════════════════════════════════ */
+/* Mobil Toggle ve Ekstra Sınıflar            */
+/* ═══════════════════════════════════════════ */
+.menu-toggle-btn {
+  display: none;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--text-main);
+  padding: 8px;
+  border-radius: 10px;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  z-index: 110;
+}
+
+.menu-toggle-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+.desktop-instructions {
+  display: inline;
+}
+
+.mobile-instructions {
+  display: none;
+}
+
+.bottom-sheet-handle {
+  display: none;
+  width: 40px;
+  height: 5px;
+  background-color: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+  margin: 0 auto 0.75rem auto;
+}
+
+/* ═══════════════════════════════════════════ */
+/* Mobil Cihazlar Medya Sorguları (768px altı) */
+/* ═══════════════════════════════════════════ */
+@media (max-width: 768px) {
+  /* Mobil cihazda Drei detay penceresini gizle, sadece Badge'leri göster */
+  .three-detail-container {
+    display: none !important;
+  }
+  
+  .three-badge-label {
+    padding: 3px 6px;
+    font-size: 0.58rem;
+  }
+  
+  .three-badge-line {
+    width: 20px;
+  }
+
+  .desktop-instructions {
+    display: none !important;
+  }
+
+  .mobile-instructions {
+    display: inline !important;
+  }
+
+  /* Credits Panel - Mobil */
+  .credits-panel {
+    top: 75px;
+    right: 12px;
+    bottom: auto;
+    padding: 0.75rem 1rem;
+    border-radius: 12px;
+    max-width: 180px;
+  }
+
+  .credits-title {
+    font-size: 0.7rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .credits-role {
+    font-size: 0.65rem;
+  }
+
+  .credits-name {
+    font-size: 0.75rem;
+    padding-left: 0.25rem;
+  }
+
+  .bottom-sheet-handle {
+    display: block;
+  }
+
+  .menu-toggle-btn {
+    display: flex;
+  }
+
+  /* Mobil Header Tasarımı (Kompakt Üst Bar) */
+  .header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 60px;
+    background: rgba(10, 10, 18, 0.85);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0 16px;
+    margin: 0;
+    z-index: 100;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    animation: none;
+  }
+
+  .header-title-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .header h1 {
+    font-size: 1.05rem;
+    margin: 0;
+  }
+
+  .header p {
+    font-size: 0.68rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 70vw;
+  }
+
+  /* Mobil Sidebar (Soldan Kayarak Açılan Drawer Menü) */
+  .sidebar {
+    position: fixed;
+    top: 60px;
+    left: 0;
+    bottom: 0;
+    width: 280px;
+    max-width: 80vw;
+    background: rgba(12, 12, 20, 0.98);
+    border: none;
+    border-right: 1px solid rgba(255, 255, 255, 0.08);
+    margin: 0;
+    padding: 1.5rem 1rem;
+    z-index: 105;
+    transform: translateX(-100%);
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 10px 0 30px rgba(0, 0, 0, 0.5);
+  }
+
+  .sidebar.open {
+    transform: translateX(0);
+  }
+
+  /* Sidebar Arka Plan Overlay */
+  .sidebar-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.75);
+    z-index: 102;
+    animation: fadeIn 0.3s ease-out;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  /* Mobil Detay Paneli (Alttan Yukarı Açılan Bottom Sheet) */
+  .info-panel {
+    display: flex; /* Enable on mobile as the bottom sheet */
+    position: fixed;
+    top: auto;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100vw;
+    height: 45vh;
+    min-height: 320px;
+    background: linear-gradient(180deg, rgba(14, 14, 22, 0.98) 0%, rgba(8, 8, 12, 1) 100%);
+    border: none;
+    border-top: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 24px 24px 0 0;
+    margin: 0;
+    padding: 1rem 1.5rem 1.5rem 1.5rem;
+    z-index: 110;
+    box-shadow: 0 -15px 30px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    transform: translateY(100%);
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s;
+    opacity: 0;
+  }
+
+  .info-panel.open {
+    transform: translateY(0);
+    opacity: 1;
+  }
+
+  .info-panel.closed {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+
+  .info-panel-header {
+    margin-bottom: 1.25rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  .info-panel-header h2 {
+    font-size: 1.05rem;
+  }
+
+  .info-panel-content {
+    padding-bottom: 2rem;
+  }
+
+  .info-section {
+    margin-bottom: 1.25rem;
+  }
+
+  .info-section h3 {
+    font-size: 0.68rem;
+    margin-bottom: 0.4rem;
+  }
+
+  .info-section p {
+    font-size: 0.78rem;
+  }
+
+  .pathology-card {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    border-left-width: 4px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+    padding: 0.7rem 0.85rem;
+  }
+
+  .pathology-card h4 {
+    font-size: 0.76rem;
+  }
+
+  .pathology-card p {
+    font-size: 0.7rem;
+  }
+
+  /* Mobil Kamera Açı Seçici (Sağ Üst, Kompakt) */
+  .view-selector {
+    position: fixed;
+    top: 75px;
+    right: 12px;
+    bottom: auto;
+    left: auto;
+    padding: 8px 10px;
+    border-radius: 10px;
+    gap: 6px;
+    z-index: 99;
+  }
+
+  .view-selector-title {
+    display: none; /* Mobilde alanı korumak için başlığı gizle */
+  }
+
+  .view-selector-buttons {
+    flex-direction: column; /* Dikey buton dizilimi */
+    gap: 4px;
+  }
+
+  .view-selector-buttons button {
+    font-size: 0.68rem;
+    padding: 6px 8px;
+    text-align: center;
+    width: 65px;
+  }
+
+  /* Alt Talimat İpucu */
+  .instruction-toast {
+    position: fixed;
+    bottom: 16px;
+    font-size: 0.72rem;
+    padding: 6px 12px;
+    width: auto;
+    max-width: 90vw;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+    pointer-events: none;
+    z-index: 100;
+  }
+}
+
+
