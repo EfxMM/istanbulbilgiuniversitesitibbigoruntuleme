@@ -3,6 +3,7 @@ import { Canvas } from '@react-three/fiber';
 import { OrbitControls, Environment, ContactShadows } from '@react-three/drei';
 import { EffectComposer, Bloom } from '@react-three/postprocessing';
 import { Info, Search, Menu, X } from 'lucide-react';
+import { SpeedInsights } from '@vercel/speed-insights/react';
 import SpineModel from './SpineModel';
 import { pathologyData, vertebraData, regionData } from './data';
 import './index.css';
@@ -305,6 +306,7 @@ export default function App() {
           </div>
         </div>
       </div>
+      <SpeedInsights />
     </div>
   );
 }
