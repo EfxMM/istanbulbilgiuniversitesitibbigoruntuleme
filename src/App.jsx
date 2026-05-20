@@ -203,6 +203,23 @@ export default function App() {
                 Kemik bulunamadı.
               </div>
             )}
+            
+            {/* Credits - Menü İçinde */}
+            <div className="sidebar-credits">
+              <div className="sidebar-credits-title">Proje Ekibi</div>
+              <div className="sidebar-credits-section">
+                <div className="sidebar-credits-role">Öğretmen</div>
+                <div className="sidebar-credits-name">Ümit Yaşar Kamacı</div>
+              </div>
+              <div className="sidebar-credits-section">
+                <div className="sidebar-credits-role">Öğrenciler</div>
+                <div className="sidebar-credits-name">Efecan Hasırcı</div>
+                <div className="sidebar-credits-name">Birol Aktaş</div>
+                <div className="sidebar-credits-name">Mehmet Erdem</div>
+                <div className="sidebar-credits-name">Yusuf Burak</div>
+                <div className="sidebar-credits-name">Yusuf Emre Tuğtekin</div>
+              </div>
+            </div>
           </div>
         </div>
 
