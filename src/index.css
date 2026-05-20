@@ -1015,25 +1015,25 @@ body, html {
 
   /* Credits Panel - Mobil */
   .credits-panel {
-    top: 75px;
+    top: 140px;
     right: 12px;
     bottom: auto;
-    padding: 0.75rem 1rem;
-    border-radius: 12px;
-    max-width: 180px;
+    padding: 0.6rem 0.85rem;
+    border-radius: 10px;
+    max-width: 160px;
   }
 
   .credits-title {
-    font-size: 0.7rem;
-    margin-bottom: 0.5rem;
+    font-size: 0.65rem;
+    margin-bottom: 0.45rem;
   }
 
   .credits-role {
-    font-size: 0.65rem;
+    font-size: 0.6rem;
   }
 
   .credits-name {
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     padding-left: 0.25rem;
   }
 
