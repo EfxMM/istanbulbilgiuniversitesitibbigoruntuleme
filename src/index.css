@@ -314,6 +314,44 @@ body, html {
   max-width: 200px;
 }
 
+/* Sidebar Credits (Menü İçinde) */
+.sidebar-credits {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  display: none; /* Desktop'ta gizli */
+}
+
+.sidebar-credits-title {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--accent-color);
+  margin-bottom: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.sidebar-credits-section {
+  margin-bottom: 0.75rem;
+}
+
+.sidebar-credits-role {
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 0.25rem;
+}
+
+.sidebar-credits-name {
+  font-size: 0.8rem;
+  color: var(--text-main);
+  padding-left: 0.5rem;
+  line-height: 1.4;
+  margin-bottom: 0.15rem;
+}
+
 .credits-title {
   font-size: 0.75rem;
   font-weight: 600;
@@ -1015,26 +1053,12 @@ body, html {
 
   /* Credits Panel - Mobil */
   .credits-panel {
-    top: 140px;
-    right: 12px;
-    bottom: auto;
-    padding: 0.6rem 0.85rem;
-    border-radius: 10px;
-    max-width: 160px;
+    display: none; /* Mobilde sağ üstteki credits gizli */
   }
 
-  .credits-title {
-    font-size: 0.65rem;
-    margin-bottom: 0.45rem;
-  }
-
-  .credits-role {
-    font-size: 0.6rem;
-  }
-
-  .credits-name {
-    font-size: 0.7rem;
-    padding-left: 0.25rem;
+  /* Sidebar Credits - Mobilde Göster */
+  .sidebar-credits {
+    display: block !important;
   }
 
   .bottom-sheet-handle {
