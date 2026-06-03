@@ -516,34 +516,16 @@ export default function App() {
           </div>
         )}
 
-        {/* 🎬 SİNEMATİK TUR KARTI */}
+        {/* 🎬 SİNEMATİK TUR KARTI — DESKTOP */}
         {isTourActive && currentTourStep && (
-          <div className={`tour-overlay ${tourCardVisible ? 'visible' : ''}`} style={{ pointerEvents: 'auto' }}>
-            {/* Tur Bilgi Kartı */}
+          <div className={`tour-overlay tour-overlay-desktop ${tourCardVisible ? 'visible' : ''}`} style={{ pointerEvents: 'auto' }}>
             <div className="tour-card" style={{ borderColor: `${currentTourStep.color}50` }}>
-              {/* Üst renk şeridi */}
               <div className="tour-card-stripe" style={{ background: `linear-gradient(90deg, ${currentTourStep.color}, transparent)` }} />
-
-              {/* [MOBİL] Progress bar — kartın en üstünde (sadece mobilde görünür) */}
-              <div className="tour-progress-bar-wrap tour-bar-mobile">
-                <div
-                  className="tour-progress-bar-fill"
-                  key={`m-${tourStep}-${isTourPaused}`}
-                  style={{
-                    backgroundColor: currentTourStep.color,
-                    animationDuration: `${TOUR_DURATION}ms`,
-                    animationPlayState: isTourPaused ? 'paused' : 'running',
-                  }}
-                />
-              </div>
-
               <div className="tour-card-body">
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.2rem' }}>
                   <div className="tour-card-badge" style={{ backgroundColor: currentTourStep.color }}>
                     {tourStep + 1} / {TOUR_STEPS.length}
                   </div>
-                  
-                  {/* İlerleme Noktaları */}
                   <div className="tour-progress-dots">
                     {TOUR_STEPS.map((_, i) => (
                       <div
@@ -554,66 +536,26 @@ export default function App() {
                     ))}
                   </div>
                 </div>
-                <h2 className="tour-card-title" style={{ color: currentTourStep.color }}>
-                  {currentTourStep.title}
-                </h2>
+                <h2 className="tour-card-title" style={{ color: currentTourStep.color }}>{currentTourStep.title}</h2>
                 <p className="tour-card-desc">{currentTourStep.description}</p>
-
-                {/* [MOBİL] Kontroller — sadece mobilde kartın içinde görünür */}
-                <div className="tour-controls tour-controls-mobile">
-                  <button className="tour-nav-btn" onClick={tourPrev} disabled={tourStep === 0}>
-                    <ChevronLeft size={18} />
-                    Önceki
-                  </button>
-                  <button className="tour-nav-btn tour-nav-pause" onClick={togglePause}>
-                    {isTourPaused
-                      ? <><Play size={14} /> Devam Et</>
-                      : <><Square size={14} /> Durdur</>
-                    }
-                  </button>
-                  {tourStep === TOUR_STEPS.length - 1 ? (
-                    <button className="tour-nav-btn" onClick={stopTour}>Bitir</button>
-                  ) : (
-                    <button className="tour-nav-btn" onClick={tourNext}>
-                      Sonraki<ChevronRight size={18} />
-                    </button>
-                  )}
-                </div>
               </div>
-
-              {/* [DESKTOP] Progress bar — kartın altında (sadece PC'de görünür) */}
-              <div className="tour-progress-bar-wrap tour-bar-desktop">
+              <div className="tour-progress-bar-wrap">
                 <div
                   className="tour-progress-bar-fill"
                   key={`d-${tourStep}-${isTourPaused}`}
-                  style={{
-                    backgroundColor: currentTourStep.color,
-                    animationDuration: `${TOUR_DURATION}ms`,
-                    animationPlayState: isTourPaused ? 'paused' : 'running',
-                  }}
+                  style={{ backgroundColor: currentTourStep.color, animationDuration: `${TOUR_DURATION}ms`, animationPlayState: isTourPaused ? 'paused' : 'running' }}
                 />
               </div>
             </div>
-
-            {/* [DESKTOP] Kontroller — kartın dışında, altında (sadece PC'de görünür) */}
-            <div className="tour-controls tour-controls-desktop">
-              <button className="tour-nav-btn" onClick={tourPrev} disabled={tourStep === 0}>
-                <ChevronLeft size={18} />
-                Önceki
-              </button>
+            <div className="tour-controls">
+              <button className="tour-nav-btn" onClick={tourPrev} disabled={tourStep === 0}><ChevronLeft size={18} />Önceki</button>
               <button className="tour-nav-btn tour-nav-pause" onClick={togglePause}>
-                {isTourPaused
-                  ? <><Play size={14} /> Devam Et</>
-                  : <><Square size={14} /> Durdur</>
-                }
+                {isTourPaused ? <><Play size={14} /> Devam Et</> : <><Square size={14} /> Durdur</>}
               </button>
-              {tourStep === TOUR_STEPS.length - 1 ? (
-                <button className="tour-nav-btn" onClick={stopTour}>Bitir</button>
-              ) : (
-                <button className="tour-nav-btn" onClick={tourNext}>
-                  Sonraki<ChevronRight size={18} />
-                </button>
-              )}
+              {tourStep === TOUR_STEPS.length - 1
+                ? <button className="tour-nav-btn" onClick={stopTour}>Bitir</button>
+                : <button className="tour-nav-btn" onClick={tourNext}>Sonraki<ChevronRight size={18} /></button>
+              }
             </div>
           </div>
         )}
@@ -679,6 +621,65 @@ export default function App() {
           </div>
         )}
       </div>
+
+      {/* 📱 MOBİL TUR BOTTOM SHEET — ui-overlay dışında, position:fixed */}
+      {isTourActive && currentTourStep && (
+        <div className={`tour-mobile-sheet ${tourCardVisible ? 'visible' : ''}`}>
+          {/* Renkli ince üst şerit */}
+          <div style={{ height: 3, background: `linear-gradient(90deg, ${currentTourStep.color}, transparent)`, borderRadius: '16px 16px 0 0' }} />
+
+          {/* İlerleme çubuğu */}
+          <div className="tour-progress-bar-wrap">
+            <div
+              className="tour-progress-bar-fill"
+              key={`mob-${tourStep}-${isTourPaused}`}
+              style={{ backgroundColor: currentTourStep.color, animationDuration: `${TOUR_DURATION}ms`, animationPlayState: isTourPaused ? 'paused' : 'running' }}
+            />
+          </div>
+
+          <div className="tour-mobile-sheet-body">
+            {/* Üst satır: badge + noktalar */}
+            <div className="tour-mobile-sheet-top">
+              <div className="tour-card-badge" style={{ backgroundColor: currentTourStep.color }}>
+                {tourStep + 1} / {TOUR_STEPS.length}
+              </div>
+              <div className="tour-progress-dots">
+                {TOUR_STEPS.map((_, i) => (
+                  <div
+                    key={i}
+                    className={`tour-dot ${i === tourStep ? 'active' : i < tourStep ? 'done' : ''}`}
+                    style={i === tourStep ? { backgroundColor: currentTourStep.color, boxShadow: `0 0 8px ${currentTourStep.color}` } : {}}
+                  />
+                ))}
+              </div>
+            </div>
+
+            {/* Başlık */}
+            <h2 className="tour-card-title" style={{ color: currentTourStep.color, fontSize: '1rem', margin: '0.4rem 0 0.3rem' }}>
+              {currentTourStep.title}
+            </h2>
+
+            {/* Açıklama */}
+            <p className="tour-card-desc" style={{ fontSize: '0.76rem', lineHeight: 1.55, WebkitLineClamp: 3, display: '-webkit-box', WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+              {currentTourStep.description}
+            </p>
+
+            {/* Kontrol butonları */}
+            <div className="tour-mobile-controls">
+              <button className="tour-nav-btn" onClick={tourPrev} disabled={tourStep === 0}>
+                <ChevronLeft size={16} />Önceki
+              </button>
+              <button className="tour-nav-btn tour-nav-pause" onClick={togglePause}>
+                {isTourPaused ? <><Play size={13} /> Devam</> : <><Square size={13} /> Durdur</>}
+              </button>
+              {tourStep === TOUR_STEPS.length - 1
+                ? <button className="tour-nav-btn" onClick={stopTour}>Bitir</button>
+                : <button className="tour-nav-btn" onClick={tourNext}>Sonraki<ChevronRight size={16} /></button>
+              }
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
