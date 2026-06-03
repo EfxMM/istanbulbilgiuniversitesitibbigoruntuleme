@@ -1561,36 +1561,54 @@ body, html {
   color: #fff;
 }
 
-/* Mobil Tur Overrides */
+/* ── Desktop: mobil elemanları gizle ── */
+.tour-bar-mobile    { display: none; }
+.tour-controls-mobile { display: none; }
+
+/* Desktop'ta kontroller kartın dışında görünür (mevcut .tour-controls stili yeterli) */
+.tour-controls-desktop { display: flex; }
+
+/* ── Mobil Tur Overrides ── */
 @media (max-width: 768px) {
   .tour-start-btn,
   .tour-stop-btn {
     display: none !important;
   }
+
+  /* Desktop elemanlarını mobilde gizle */
+  .tour-bar-desktop     { display: none !important; }
+  .tour-controls-desktop { display: none !important; }
+
+  /* Mobil elemanlarını göster */
+  .tour-bar-mobile { display: block; }
+  .tour-controls-mobile {
+    display: flex;
+    width: 100%;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+  }
+
   .tour-overlay {
-    bottom: 1.5rem;
+    bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
     width: 96vw;
   }
   .tour-card-body {
-    padding: 0.75rem 1rem 0.75rem !important;
+    padding: 0.75rem 1rem 0.85rem !important;
+    padding-bottom: calc(0.85rem + env(safe-area-inset-bottom, 0px)) !important;
   }
   .tour-card-title { font-size: 0.95rem; }
   .tour-card-desc  { font-size: 0.75rem; }
-  .tour-controls {
-    width: 100%;
-    display: flex;
-    gap: 0.5rem;
-    margin-top: 0.8rem !important;
-  }
-  .tour-nav-btn {
+
+  /* Mobil buton düzeni: eşit genişlik, tam dokunmatik */
+  .tour-controls-mobile .tour-nav-btn {
     flex: 1;
-    font-size: 0.7rem;
-    padding: 0.5rem 0.5rem;
+    font-size: 0.72rem;
+    padding: 0.55rem 0.4rem;
     justify-content: center;
     white-space: nowrap;
     min-width: 0;
   }
-  .tour-nav-btn.tour-nav-pause {
-    min-width: 80px;
+  .tour-controls-mobile .tour-nav-btn.tour-nav-pause {
+    min-width: 85px;
   }
 }
