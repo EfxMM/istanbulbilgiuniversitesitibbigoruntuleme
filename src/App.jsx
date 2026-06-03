@@ -524,6 +524,19 @@ export default function App() {
               {/* Üst renk şeridi */}
               <div className="tour-card-stripe" style={{ background: `linear-gradient(90deg, ${currentTourStep.color}, transparent)` }} />
 
+              {/* İlerleme Çubuğu — Üste taşındı */}
+              <div className="tour-progress-bar-wrap">
+                <div
+                  className="tour-progress-bar-fill"
+                  key={`${tourStep}-${isTourPaused}`}
+                  style={{
+                    backgroundColor: currentTourStep.color,
+                    animationDuration: `${TOUR_DURATION}ms`,
+                    animationPlayState: isTourPaused ? 'paused' : 'running',
+                  }}
+                />
+              </div>
+
               <div className="tour-card-body">
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.2rem' }}>
                   <div className="tour-card-badge" style={{ backgroundColor: currentTourStep.color }}>
@@ -580,19 +593,6 @@ export default function App() {
                     </button>
                   )}
                 </div>
-              </div>
-
-              {/* Alt İlerleme Çubuğu — duraklandığında donuyor */}
-              <div className="tour-progress-bar-wrap">
-                <div
-                  className="tour-progress-bar-fill"
-                  key={`${tourStep}-${isTourPaused}`}
-                  style={{
-                    backgroundColor: currentTourStep.color,
-                    animationDuration: `${TOUR_DURATION}ms`,
-                    animationPlayState: isTourPaused ? 'paused' : 'running',
-                  }}
-                />
               </div>
             </div>
           </div>
