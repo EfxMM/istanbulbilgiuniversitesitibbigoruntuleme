@@ -1571,12 +1571,16 @@ body, html {
     bottom: 1.5rem;
     width: 96vw;
   }
+  .tour-card-body {
+    padding: 0.75rem 1rem 0.75rem !important;
+  }
   .tour-card-title { font-size: 0.95rem; }
   .tour-card-desc  { font-size: 0.75rem; }
   .tour-controls {
     width: 100%;
     display: flex;
     gap: 0.5rem;
+    margin-top: 0.8rem !important;
   }
   .tour-nav-btn {
     flex: 1;
