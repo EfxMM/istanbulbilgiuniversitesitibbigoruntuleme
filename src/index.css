@@ -84,6 +84,10 @@ body, html {
   font-weight: 400;
 }
 
+.header-actions {
+  display: none;
+}
+
 /* Left side navigation/menu */
 .sidebar {
   position: absolute;
@@ -1094,11 +1098,16 @@ body, html {
     display: flex;
     flex-direction: column;
     justify-content: center;
+    flex: 1;
+    min-width: 0;
   }
 
   .header h1 {
     font-size: 1.05rem;
     margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .header p {
@@ -1106,7 +1115,59 @@ body, html {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 70vw;
+    max-width: 100%;
+  }
+
+  .header-actions {
+    display: flex;
+    align-items: center;
+    margin-left: auto;
+    flex-shrink: 0;
+    z-index: 110;
+  }
+
+  .tour-header-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: #fff;
+    font-family: inherit;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 6px 12px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+
+  .tour-header-btn:active {
+    background: rgba(255, 255, 255, 0.15);
+    transform: scale(0.95);
+  }
+
+  .tour-header-close-btn {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: rgba(239, 68, 68, 0.15);
+    border: 1px solid rgba(239, 68, 68, 0.35);
+    color: #fca5a5;
+    font-family: inherit;
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 5px 10px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+
+  .tour-header-close-btn:active {
+    background: rgba(239, 68, 68, 0.3);
+    transform: scale(0.95);
   }
 
   /* Mobil Sidebar (Soldan Kayarak Açılan Drawer Menü) */
@@ -1504,8 +1565,7 @@ body, html {
 @media (max-width: 768px) {
   .tour-start-btn,
   .tour-stop-btn {
-    font-size: 0.68rem;
-    padding: 0.38rem 0.65rem;
+    display: none !important;
   }
   .tour-overlay {
     bottom: 1rem;
@@ -1513,5 +1573,20 @@ body, html {
   }
   .tour-card-title { font-size: 0.95rem; }
   .tour-card-desc  { font-size: 0.75rem; }
-  .tour-nav-btn    { font-size: 0.7rem; padding: 0.42rem 0.75rem; }
+  .tour-controls {
+    width: 100%;
+    display: flex;
+    gap: 0.5rem;
+  }
+  .tour-nav-btn {
+    flex: 1;
+    font-size: 0.7rem;
+    padding: 0.5rem 0.5rem;
+    justify-content: center;
+    white-space: nowrap;
+    min-width: 0;
+  }
+  .tour-nav-btn.tour-nav-pause {
+    min-width: 80px;
+  }
 }
