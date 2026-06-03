@@ -1564,9 +1564,12 @@ body, html {
 /* ── Desktop: mobil elemanları gizle ── */
 .tour-bar-mobile    { display: none; }
 .tour-controls-mobile { display: none; }
-
-/* Desktop'ta kontroller kartın dışında görünür (mevcut .tour-controls stili yeterli) */
 .tour-controls-desktop { display: flex; }
+
+/* Mobil bottom sheet — desktop'ta gizli */
+.tour-mobile-sheet {
+  display: none;
+}
 
 /* ── Mobil Tur Overrides ── */
 @media (max-width: 768px) {
@@ -1575,32 +1578,57 @@ body, html {
     display: none !important;
   }
 
-  /* Desktop elemanlarını mobilde gizle */
-  .tour-bar-desktop     { display: none !important; }
-  .tour-controls-desktop { display: none !important; }
+  /* Desktop tur overlay'ini tamamen gizle */
+  .tour-overlay-desktop {
+    display: none !important;
+  }
 
-  /* Mobil elemanlarını göster */
-  .tour-bar-mobile { display: block; }
-  .tour-controls-mobile {
+  /* Mobil bottom sheet — ekranın en altına sabitlenmiş, her zaman görünür */
+  .tour-mobile-sheet {
+    display: block;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 999;
+    background: rgba(8, 8, 16, 0.97);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 18px 18px 0 0;
+    box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.7);
+    opacity: 0;
+    transform: translateY(100%);
+    transition: opacity 0.4s ease, transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    pointer-events: none;
+  }
+
+  .tour-mobile-sheet.visible {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+  }
+
+  .tour-mobile-sheet-body {
+    padding: 0.75rem 1.1rem;
+    padding-bottom: calc(0.75rem + env(safe-area-inset-bottom, 12px));
+  }
+
+  .tour-mobile-sheet-top {
     display: flex;
-    width: 100%;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.3rem;
+  }
+
+  .tour-mobile-controls {
+    display: flex;
     gap: 0.5rem;
-    margin-top: 0.75rem;
+    margin-top: 0.65rem;
+    width: 100%;
   }
 
-  .tour-overlay {
-    bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
-    width: 96vw;
-  }
-  .tour-card-body {
-    padding: 0.75rem 1rem 0.85rem !important;
-    padding-bottom: calc(0.85rem + env(safe-area-inset-bottom, 0px)) !important;
-  }
-  .tour-card-title { font-size: 0.95rem; }
-  .tour-card-desc  { font-size: 0.75rem; }
-
-  /* Mobil buton düzeni: eşit genişlik, tam dokunmatik */
-  .tour-controls-mobile .tour-nav-btn {
+  .tour-mobile-controls .tour-nav-btn {
     flex: 1;
     font-size: 0.72rem;
     padding: 0.55rem 0.4rem;
@@ -1608,7 +1636,8 @@ body, html {
     white-space: nowrap;
     min-width: 0;
   }
-  .tour-controls-mobile .tour-nav-btn.tour-nav-pause {
+
+  .tour-mobile-controls .tour-nav-btn.tour-nav-pause {
     min-width: 85px;
   }
 }
