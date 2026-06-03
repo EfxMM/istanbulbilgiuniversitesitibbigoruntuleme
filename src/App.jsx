@@ -1,11 +1,87 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, Environment, ContactShadows } from '@react-three/drei';
 import { EffectComposer, Bloom } from '@react-three/postprocessing';
-import { Info, Search, Menu, X } from 'lucide-react';
+import { Info, Search, Menu, X, Play, Square, ChevronLeft, ChevronRight, Video, Check } from 'lucide-react';
 import SpineModel from './SpineModel';
 import { pathologyData, vertebraData, regionData } from './data';
 import './index.css';
+
+// ═══════════════════════════════════════════
+// Tur Adımları (Sinematik Müze Turu Rotası)
+// ═══════════════════════════════════════════
+const TOUR_STEPS = [
+  {
+    regionId: 'mandibula',
+    boneId: 'mandibula',
+    title: 'Mandibula — Alt Çene Kemiği',
+    description: 'İnsan yüzündeki tek hareketli kemiktir. Çiğneme ve konuşma hareketlerini sağlar. Travma sonucu kırılabilir, ağrı ve kapanış bozukluğuna yol açar.',
+    color: '#9b59b6',
+  },
+  {
+    regionId: 'cervical',
+    boneId: 'c1',
+    title: 'C1 (Atlas) — Boyun Bölgesi',
+    description: 'Kafatasını taşıyan ve "evet" hareketini sağlayan özel omurdur. Halka şeklindedir; gövdesi yoktur. Atlanto-oksipital dislokasyon gibi ağır travmalar bu bölgeyi etkiler.',
+    color: '#ff8f8f',
+  },
+  {
+    regionId: 'thoracic',
+    boneId: 't6',
+    title: 'Torakal Bölge — Sırt Omurları',
+    description: 'T1–T12 arası 12 omurdan oluşur. Her omur bir çift kaburga ile eklem yapar ve göğüs kafesinin sağlamlığını oluşturur. Skolyoz ve Kifoz bu bölgede sık görülür.',
+    color: '#8fc8ff',
+  },
+  {
+    regionId: 'lumbar',
+    boneId: 'l3',
+    title: 'Lomber Bölge — Bel Omurları',
+    description: 'L1–L5 arası vücudun en yüklü 5 omurudur. L4–L5 ve L5–S1 seviyeleri en sık bel fıtığı görülen bölgelerdir. Siyatik ağrısının kaynağı genellikle burasıdır.',
+    color: '#8fedc4',
+  },
+  {
+    regionId: 'disk',
+    boneId: 'disk',
+    title: 'İntervertebral Diskler',
+    description: 'Omurlar arasındaki amortisör disklerdir. İçlerindeki jel (nucleus pulposus) yırtılan dış halka nedeniyle dışarı sızarsa sinir köklerine baskı yaparak fıtık oluşturur.',
+    color: '#e58eff',
+  },
+  {
+    regionId: 'costae',
+    boneId: 'costae',
+    title: 'Kaburgalar (Costa 1–10)',
+    description: 'Akciğer ve kalbi dış darbelerden koruyan 10 çift kaburga, hem omurgaya hem de göğüs kemiğine (sternum) bağlıdır. Solunum hareketine aktif olarak katılırlar.',
+    color: '#8fe8ff',
+  },
+  {
+    regionId: 'klavikula',
+    boneId: 'klavikula',
+    title: 'Klavikula — Köprücük Kemiği',
+    description: 'Gövde ile kol arasındaki tek kemiksel bağlantıdır. Omuzu dışarıda ve arkada tutar. Omuz üzerine düşmelerde en sık kırılan kemikler arasında yer alır.',
+    color: '#ffcedc',
+  },
+  {
+    regionId: 'humerus',
+    boneId: 'humerus',
+    title: 'Humerus — Kol Kemiği',
+    description: 'Omuzdan dirseğe uzanan koldaki tek uzun kemiktir. Deltoid ve biseps gibi büyük kaslara tutunma noktası sağlar. Başının kırıkları yaşlılarda sık görülür.',
+    color: '#ff9ebe',
+  },
+  {
+    regionId: 'pelvis',
+    boneId: 'pelvis',
+    title: 'Pelvis — Leğen Kemiği',
+    description: 'Vücut ağırlığını bacaklara aktaran büyük kemik halkasıdır. İç organları (mesane, rahim, bağırsaklar) korur. Yüksek enerjili trafik kazalarında ciddi kırıklar oluşabilir.',
+    color: '#ffd1a9',
+  },
+  {
+    regionId: 'femur',
+    boneId: 'femur',
+    title: 'Femur — Uyluk Kemiği',
+    description: 'İnsan vücudunun en uzun, en kalın ve en güçlü kemiğidir. Kalçadan dize vücut ağırlığını aktarır. Femur boynu kırıkları yaşlılarda sık görülür ve kalça protezi gerektirebilir.',
+    color: '#cbb0ff',
+  },
+];
 
 class ErrorBoundary extends React.Component {
   state = { hasError: false };
@@ -43,17 +119,148 @@ export default function App() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
+  // ── Tur Modu State ──
+  const [isTourActive,    setIsTourActive]    = useState(false);
+  const [isTourPaused,    setIsTourPaused]    = useState(false);
+  const [tourStep,        setTourStep]        = useState(0);
+  const [tourCardVisible, setTourCardVisible] = useState(false);
+  const isTourPausedRef = useRef(false);
+
+  const TOUR_DURATION   = 7000;
+  const tourTimerRef    = useRef(null);
+  const tourStepRef     = useRef(0);   // interval stale closure olmadan güncel adımı tutar
+
+  // ── Yardımcılar ──
+  const clearTourTimer = useCallback(() => {
+    if (tourTimerRef.current) {
+      clearInterval(tourTimerRef.current);
+      tourTimerRef.current = null;
+    }
+  }, []);
+
+  const applyTourStep = useCallback((idx) => {
+    const step = TOUR_STEPS[idx];
+    if (!step) return;
+    setActiveRegion(step.regionId);
+    setSelectedBone(null);
+    setTourCardVisible(false);
+    setTimeout(() => {
+      setCameraViewTrigger({ view: '__tour__', boneId: step.boneId, regionId: step.regionId, time: Date.now() });
+    }, 80);
+    setTimeout(() => setTourCardVisible(true), 420);
+  }, []);
+
+  // ── stopTour: turı tamamen kapat ──
+  const stopTour = useCallback(() => {
+    clearTourTimer();
+    setTourCardVisible(false);
+    setIsTourPaused(false);
+    isTourPausedRef.current = false;
+    setTimeout(() => {
+      setIsTourActive(false);
+      setTourStep(0);
+      tourStepRef.current = 0;
+      setActiveRegion(null);
+      setSelectedBone(null);
+      setCameraViewTrigger({ view: 'reset', time: Date.now() });
+    }, 350);
+  }, [clearTourTimer]);
+
+  // ── startTimer: her zaman tourStepRef'ten okur, stale closure yok ──
+  const startTimer = useCallback(() => {
+    clearTourTimer();
+    tourTimerRef.current = setInterval(() => {
+      const next = tourStepRef.current + 1;
+      if (next >= TOUR_STEPS.length) {
+        // Tur bitti, stopTour çağır ama ref callback'inin dışında
+        setTimeout(() => {
+          clearTourTimer();
+          setTourCardVisible(false);
+          setTimeout(() => {
+            setIsTourActive(false);
+            setTourStep(0);
+            tourStepRef.current = 0;
+            setActiveRegion(null);
+            setSelectedBone(null);
+            setCameraViewTrigger({ view: 'reset', time: Date.now() });
+          }, 350);
+        }, 0);
+        return;
+      }
+      tourStepRef.current = next;
+      setTourStep(next);
+      applyTourStep(next);
+    }, TOUR_DURATION);
+  }, [clearTourTimer, applyTourStep]);
+
+  // ── pauseTour: timer’ı durdur, kartı açık bırak ──
+  const pauseTour = useCallback(() => {
+    clearTourTimer();
+    setIsTourPaused(true);
+    isTourPausedRef.current = true;
+  }, [clearTourTimer]);
+
+  // ── resumeTour: timer’ı yeniden başlat ──
+  const resumeTour = useCallback(() => {
+    setIsTourPaused(false);
+    isTourPausedRef.current = false;
+    startTimer();
+  }, [startTimer]);
+
+  const togglePause = useCallback(() => {
+    if (isTourPausedRef.current) resumeTour();
+    else pauseTour();
+  }, [pauseTour, resumeTour]);
+
+  // ── startTour ──
+  const startTour = useCallback(() => {
+    clearTourTimer();
+    tourStepRef.current = 0;
+    setTourStep(0);
+    setIsTourActive(true);
+    setIsSidebarOpen(false);
+    setSelectedBone(null);
+    applyTourStep(0);
+    startTimer();
+  }, [clearTourTimer, applyTourStep, startTimer]);
+
+  // ── tourNext: timer’ı sıfırla + bir sonraki adıma geç ──
+  const tourNext = useCallback(() => {
+    const next = tourStepRef.current + 1;
+    if (next >= TOUR_STEPS.length) { stopTour(); return; }
+    tourStepRef.current = next;
+    setTourStep(next);
+    setIsTourPaused(false);
+    isTourPausedRef.current = false;
+    applyTourStep(next);
+    startTimer();
+  }, [stopTour, applyTourStep, startTimer]);
+
+  // ── tourPrev: timer’ı sıfırla + bir önceki adıma dön ──
+  const tourPrev = useCallback(() => {
+    const prev = Math.max(0, tourStepRef.current - 1);
+    tourStepRef.current = prev;
+    setTourStep(prev);
+    setIsTourPaused(false);
+    isTourPausedRef.current = false;
+    applyTourStep(prev);
+    startTimer();
+  }, [applyTourStep, startTimer]);
+
+  // Unmount temizliği
+  useEffect(() => () => clearTourTimer(), [clearTourTimer]);
+
   const handleRegionSelect = (regionId) => {
+    if (isTourActive) return; // Tur aktifken sol menü devre dışı
     setActiveRegion(activeRegion === regionId ? null : regionId);
     setSelectedBone(null);
-    setIsSidebarOpen(false); // Close sidebar on mobile after selecting a region
+    setIsSidebarOpen(false);
   };
 
   const filteredRegions = Object.values(pathologyData).filter(region =>
     region.title.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  // Kemikleri mantıksal kategorilere ayırma
   const groupedRegions = {
     'Kafa ve Yüz': [],
     'Omurga Bölgesi': [],
@@ -79,12 +286,14 @@ export default function App() {
   });
 
   const selectedBoneData = (selectedBone && selectedBone !== 'disk')
-    ? vertebraData[selectedBone] 
+    ? vertebraData[selectedBone]
     : ((activeRegion === 'disk' || selectedBone === 'disk') ? regionData.disk : null);
-    
-  const activeRegionColor = selectedBoneData 
-    ? (selectedBoneData.color || regionData[selectedBone]?.color || regionData[selectedBoneData.region]?.color || '#ff4d4d') 
+
+  const activeRegionColor = selectedBoneData
+    ? (selectedBoneData.color || regionData[selectedBone]?.color || regionData[selectedBoneData.region]?.color || '#ff4d4d')
     : '#ff4d4d';
+
+  const currentTourStep = TOUR_STEPS[tourStep];
 
   return (
     <div className="app-container">
@@ -108,26 +317,27 @@ export default function App() {
 
             <React.Suspense fallback={null}>
               <SpineModel
-                modelPath="/fullpaket.glb"
                 activeRegion={activeRegion}
                 setActiveRegion={setActiveRegion}
                 hoveredRegion={hoveredRegion}
                 selectedBone={selectedBone}
                 setSelectedBone={setSelectedBone}
                 cameraViewTrigger={cameraViewTrigger}
+                modelPath="/fullpaket.glb"
+                isTourActive={isTourActive}
               />
               <ContactShadows position={[0, -4, 0]} opacity={0.4} scale={10} blur={2} far={10} />
             </React.Suspense>
 
             <EffectComposer disableNormalPass>
-              <Bloom mipmapBlur intensity={0.15} luminanceThreshold={0.4} luminanceSmoothing={0.1} />
+              <Bloom mipmapBlur intensity={isTourActive ? 0.25 : 0.15} luminanceThreshold={0.4} luminanceSmoothing={0.1} />
             </EffectComposer>
 
             <OrbitControls
               makeDefault
-              enablePan={true}
-              enableZoom={true}
-              enableRotate={true}
+              enablePan={!isTourActive}
+              enableZoom={!isTourActive}
+              enableRotate={!isTourActive}
               minDistance={0.1}
               maxDistance={100}
             />
@@ -139,8 +349,8 @@ export default function App() {
       <div className="ui-overlay" style={{ pointerEvents: 'none' }}>
         {/* Mobil Sidebar Karartma Arka Planı */}
         {isSidebarOpen && (
-          <div 
-            className="sidebar-backdrop" 
+          <div
+            className="sidebar-backdrop"
             onClick={() => setIsSidebarOpen(false)}
             style={{ pointerEvents: 'auto' }}
           />
@@ -148,180 +358,295 @@ export default function App() {
 
         {/* Üst Bilgi Başlığı */}
         <header className="header" style={{ pointerEvents: 'auto' }}>
-          <button 
-            className="menu-toggle-btn" 
-            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-            aria-label="Menüyü Aç/Kapat"
-          >
-            {isSidebarOpen ? <X size={20} /> : <Menu size={20} />}
-          </button>
+          {!isTourActive && (
+            <button
+              className="menu-toggle-btn"
+              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+              aria-label="Menüyü Aç/Kapat"
+            >
+              {isSidebarOpen ? <X size={20} /> : <Menu size={20} />}
+            </button>
+          )}
           <div className="header-title-container">
             <h1>İskelet Anatomisi</h1>
-            <p>Bölgeleri incelemek için soldan seçin veya arayın, detay için kemiklere tıklayın.</p>
+            <p>
+              {isTourActive
+                ? `Rehberli Tur — ${tourStep + 1} / ${TOUR_STEPS.length}`
+                : 'Bölgeleri incelemek için soldan seçin veya arayın, detay için kemiklere tıklayın.'}
+            </p>
           </div>
         </header>
 
-        {/* Sol Menü (Arama ve Liste) */}
-        <div className={`sidebar ${isSidebarOpen ? 'open' : ''}`} style={{ pointerEvents: 'auto' }}>
-          <div className="search-container">
-            <Search className="search-icon" size={18} />
-            <input
-              type="text"
-              className="search-box"
-              placeholder="Kemik ara... (örn: Femur)"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
+        {/* Floating Tur Başlatma Butonu */}
+        {!isTourActive && (
+          <button className="tour-start-btn" onClick={startTour} style={{ pointerEvents: 'auto' }}>
+            <Video size={20} />
+            Turu Başlat
+          </button>
+        )}
+
+        {/* Floating Turu Bitir Butonu */}
+        {isTourActive && (
+          <button className="tour-stop-btn" onClick={stopTour} style={{ pointerEvents: 'auto' }}>
+            <Square size={14} />
+            Turu Kapat
+          </button>
+        )}
+
+        {/* Sol Menü — Tur aktifken gizli */}
+        {!isTourActive && (
+          <div className={`sidebar ${isSidebarOpen ? 'open' : ''}`} style={{ pointerEvents: 'auto' }}>
+            <div className="search-container">
+              <Search className="search-icon" size={18} />
+              <input
+                type="text"
+                className="search-box"
+                placeholder="Kemik ara... (örn: Femur)"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+
+            <div className="region-list">
+              {filteredRegions.length > 0 ? (
+                Object.entries(groupedRegions).map(([groupName, regions]) => (
+                  regions.length > 0 && (
+                    <div key={groupName} className="region-group">
+                      <div className="region-group-title">{groupName}</div>
+                      {regions.map((region) => (
+                        <button
+                          key={region.id}
+                          className={`region-btn ${activeRegion === region.id ? 'active' : ''}`}
+                          onClick={() => handleRegionSelect(region.id)}
+                          onMouseEnter={() => setHoveredRegion(region.id)}
+                          onMouseLeave={() => setHoveredRegion(null)}
+                        >
+                          <span
+                            className="color-indicator"
+                            style={{ backgroundColor: region.color, boxShadow: `0 0 10px ${region.color}` }}
+                          />
+                          {region.title}
+                        </button>
+                      ))}
+                    </div>
+                  )
+                ))
+              ) : (
+                <div style={{ color: '#aaa', fontSize: '0.9rem', padding: '1rem', textAlign: 'center' }}>
+                  Kemik bulunamadı.
+                </div>
+              )}
+
+              {/* Credits - Menü İçinde */}
+              <div className="sidebar-credits">
+                <div className="sidebar-credits-title">Proje Ekibi</div>
+                <div className="sidebar-credits-section">
+                  <div className="sidebar-credits-role">Koordinatör</div>
+                  <div className="sidebar-credits-name">Ümit Yaşar Kamacı</div>
+                </div>
+                <div className="sidebar-credits-section">
+                  <div className="sidebar-credits-role">Öğrenciler</div>
+                  <div className="sidebar-credits-name">Efecan Hasırcı</div>
+                  <div className="sidebar-credits-name">Birol Aktaş</div>
+                  <div className="sidebar-credits-name">Mehmet Erdem</div>
+                  <div className="sidebar-credits-name">Yusuf Burak</div>
+                  <div className="sidebar-credits-name">Yusuf Emre Tuğtekin</div>
+                </div>
+              </div>
+            </div>
           </div>
-          
-          <div className="region-list">
-            {filteredRegions.length > 0 ? (
-              Object.entries(groupedRegions).map(([groupName, regions]) => (
-                regions.length > 0 && (
-                  <div key={groupName} className="region-group">
-                    <div className="region-group-title">{groupName}</div>
-                    {regions.map((region) => (
-                      <button
-                        key={region.id}
-                        className={`region-btn ${activeRegion === region.id ? 'active' : ''}`}
-                        onClick={() => handleRegionSelect(region.id)}
-                        onMouseEnter={() => setHoveredRegion(region.id)}
-                        onMouseLeave={() => setHoveredRegion(null)}
-                      >
-                        <span
-                          className="color-indicator"
-                          style={{ backgroundColor: region.color, boxShadow: `0 0 10px ${region.color}` }}
-                        />
-                        {region.title}
-                      </button>
-                    ))}
+        )}
+
+        {/* 📋 Sağ Detay Paneli */}
+        {!isTourActive && (
+          <div className={`info-panel ${selectedBoneData ? 'open' : 'closed'}`} style={{ pointerEvents: 'auto' }}>
+            <div className="bottom-sheet-handle" />
+            {selectedBoneData ? (
+              <>
+                <div className="info-panel-header">
+                  <div className="info-panel-title-wrapper">
+                    <span className="info-panel-badge" style={{ backgroundColor: activeRegionColor }}>
+                      {selectedBone ? selectedBone.toUpperCase() : 'DİSK'}
+                    </span>
+                    <h2>{selectedBoneData.name.replace(/^[A-Z]\d+\s*–\s*/i, '')}</h2>
                   </div>
-                )
-              ))
+                  <button className="info-panel-close" onClick={() => {
+                    setSelectedBone(null);
+                    if (activeRegion === 'disk') setActiveRegion(null);
+                  }}>✕</button>
+                </div>
+
+                <div className="info-panel-content">
+                  <div className="info-section">
+                    <h3 style={{ color: activeRegionColor, opacity: 0.95 }}>Anatomik Fonksiyon</h3>
+                    <p>{selectedBoneData.function}</p>
+                  </div>
+
+                  <div className="info-section">
+                    <h3 style={{ color: activeRegionColor, opacity: 0.95 }}>Sık Görülen Klinik Patolojiler</h3>
+                    <div className="pathology-list">
+                      {selectedBoneData.pathologies.map((p, i) => (
+                        <div key={i} className="pathology-card" style={{ borderLeftColor: activeRegionColor }}>
+                          <h4 style={{ color: activeRegionColor }}>{p.name}</h4>
+                          <p>{p.detail}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </>
             ) : (
-              <div style={{ color: '#aaa', fontSize: '0.9rem', padding: '1rem', textAlign: 'center' }}>
-                Kemik bulunamadı.
+              <div style={{ color: '#8892b0', fontSize: '0.9rem', textAlign: 'center', margin: 'auto' }}>
+                Detayları görmek için modelden bir kemik seçin.
               </div>
             )}
-            
-            {/* Credits - Menü İçinde */}
-            <div className="sidebar-credits">
-              <div className="sidebar-credits-title">Proje Ekibi</div>
-              <div className="sidebar-credits-section">
-                <div className="sidebar-credits-role">Öğretmen</div>
-                <div className="sidebar-credits-name">Ümit Yaşar Kamacı</div>
-              </div>
-              <div className="sidebar-credits-section">
-                <div className="sidebar-credits-role">Öğrenciler</div>
-                <div className="sidebar-credits-name">Efecan Hasırcı</div>
-                <div className="sidebar-credits-name">Birol Aktaş</div>
-                <div className="sidebar-credits-name">Mehmet Erdem</div>
-                <div className="sidebar-credits-name">Yusuf Burak</div>
-                <div className="sidebar-credits-name">Yusuf Emre Tuğtekin</div>
-              </div>
-            </div>
           </div>
-        </div>
+        )}
 
-        {/* 📋 Sağ Detay Paneli (Sağdan kayarak açılan şık cam panel) */}
-        <div className={`info-panel ${selectedBoneData ? 'open' : 'closed'}`} style={{ pointerEvents: 'auto' }}>
-          <div className="bottom-sheet-handle" />
-          {selectedBoneData ? (
-            <>
-              <div className="info-panel-header">
-                <div className="info-panel-title-wrapper">
-                  <span className="info-panel-badge" style={{ backgroundColor: activeRegionColor }}>
-                    {selectedBone ? selectedBone.toUpperCase() : 'DİSK'}
-                  </span>
-                  <h2>{selectedBoneData.name.replace(/^[A-Z]\d+\s*–\s*/i, '')}</h2>
-                </div>
-                <button className="info-panel-close" onClick={() => {
-                  setSelectedBone(null);
-                  if (activeRegion === 'disk') setActiveRegion(null);
-                }}>✕</button>
-              </div>
+        {/* 🎬 SİNEMATİK TUR KARTI */}
+        {isTourActive && currentTourStep && (
+          <div className={`tour-overlay ${tourCardVisible ? 'visible' : ''}`} style={{ pointerEvents: 'auto' }}>
+            {/* Tur Bilgi Kartı */}
+            <div className="tour-card" style={{ borderColor: `${currentTourStep.color}50` }}>
+              {/* Üst renk şeridi */}
+              <div className="tour-card-stripe" style={{ background: `linear-gradient(90deg, ${currentTourStep.color}, transparent)` }} />
 
-              <div className="info-panel-content">
-                <div className="info-section">
-                  <h3 style={{ color: activeRegionColor, opacity: 0.95 }}>Anatomik Fonksiyon</h3>
-                  <p>{selectedBoneData.function}</p>
-                </div>
-
-                <div className="info-section">
-                  <h3 style={{ color: activeRegionColor, opacity: 0.95 }}>Sık Görülen Klinik Patolojiler</h3>
-                  <div className="pathology-list">
-                    {selectedBoneData.pathologies.map((p, i) => (
-                      <div key={i} className="pathology-card" style={{ borderLeftColor: activeRegionColor }}>
-                        <h4 style={{ color: activeRegionColor }}>{p.name}</h4>
-                        <p>{p.detail}</p>
-                      </div>
+              <div className="tour-card-body">
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.2rem' }}>
+                  <div className="tour-card-badge" style={{ backgroundColor: currentTourStep.color }}>
+                    {tourStep + 1} / {TOUR_STEPS.length}
+                  </div>
+                  
+                  {/* İlerleme Noktaları Kartın İçinde */}
+                  <div className="tour-progress-dots">
+                    {TOUR_STEPS.map((_, i) => (
+                      <div
+                        key={i}
+                        className={`tour-dot ${i === tourStep ? 'active' : i < tourStep ? 'done' : ''}`}
+                        style={i === tourStep ? { backgroundColor: currentTourStep.color, boxShadow: `0 0 8px ${currentTourStep.color}` } : {}}
+                      />
                     ))}
                   </div>
                 </div>
+                <h2 className="tour-card-title" style={{ color: currentTourStep.color }}>
+                  {currentTourStep.title}
+                </h2>
+                <p className="tour-card-desc">{currentTourStep.description}</p>
               </div>
-            </>
-          ) : (
-            <div style={{ color: '#8892b0', fontSize: '0.9rem', textAlign: 'center', margin: 'auto' }}>
-              Detayları görmek için modelden bir kemik seçin.
-            </div>
-          )}
-        </div>
 
-        {/* 🎛️ Kamera Yön Seçici Kontrolleri */}
-        <div className="view-selector" style={{ pointerEvents: 'auto' }}>
-          <div className="view-selector-title">Kamera Açısı (Yönler)</div>
-          <div className="view-selector-buttons">
-            <button onClick={() => setCameraViewTrigger({ view: 'anterior', time: Date.now() })}>
-              Anterior (Ön)
-            </button>
-            <button onClick={() => setCameraViewTrigger({ view: 'posterior', time: Date.now() })}>
-              Posterior (Arka)
-            </button>
-            <button onClick={() => setCameraViewTrigger({ view: 'left', time: Date.now() })}>
-              Sol
-            </button>
-            <button onClick={() => setCameraViewTrigger({ view: 'right', time: Date.now() })}>
-              Sağ
-            </button>
-            <button 
-              className="reset-btn" 
-              onClick={() => {
-                setCameraViewTrigger({ view: 'reset', time: Date.now() });
-                setActiveRegion(null);
-                setSelectedBone(null);
-              }}
-            >
-              Sıfırla
-            </button>
+              {/* Alt İlerleme Çubuğu — duraklandığında donuyor */}
+              <div className="tour-progress-bar-wrap">
+                <div
+                  className="tour-progress-bar-fill"
+                  key={`${tourStep}-${isTourPaused}`}
+                  style={{
+                    backgroundColor: currentTourStep.color,
+                    animationDuration: `${TOUR_DURATION}ms`,
+                    animationPlayState: isTourPaused ? 'paused' : 'running',
+                  }}
+                />
+              </div>
+            </div>
+
+            {/* Önceki / Sonraki Kontrolleri */}
+            <div className="tour-controls">
+              <button
+                className="tour-nav-btn"
+                onClick={tourPrev}
+                disabled={tourStep === 0}
+              >
+                <ChevronLeft size={18} />
+                Önceki
+              </button>
+              <button className="tour-nav-btn tour-nav-pause" onClick={togglePause}>
+                {isTourPaused
+                  ? <><Play size={14} /> Devam Et</>
+                  : <><Square size={14} /> Durdur</>
+                }
+              </button>
+              
+              {tourStep === TOUR_STEPS.length - 1 ? (
+                <button
+                  className="tour-nav-btn"
+                  onClick={stopTour}
+                >
+                  Bitir
+                </button>
+              ) : (
+                <button
+                  className="tour-nav-btn"
+                  onClick={tourNext}
+                >
+                  Sonraki
+                  <ChevronRight size={18} />
+                </button>
+              )}
+            </div>
           </div>
-        </div>
+        )}
+
+        {/* 🎛️ Kamera Yön Seçici — Tur aktifken gizli */}
+        {!isTourActive && (
+          <div className="view-selector" style={{ pointerEvents: 'auto' }}>
+            <div className="view-selector-title">Kamera Açısı (Yönler)</div>
+            <div className="view-selector-buttons">
+              <button onClick={() => setCameraViewTrigger({ view: 'anterior', time: Date.now() })}>
+                Anterior (Ön)
+              </button>
+              <button onClick={() => setCameraViewTrigger({ view: 'posterior', time: Date.now() })}>
+                Posterior (Arka)
+              </button>
+              <button onClick={() => setCameraViewTrigger({ view: 'left', time: Date.now() })}>
+                Sol
+              </button>
+              <button onClick={() => setCameraViewTrigger({ view: 'right', time: Date.now() })}>
+                Sağ
+              </button>
+              <button
+                className="reset-btn"
+                onClick={() => {
+                  setCameraViewTrigger({ view: 'reset', time: Date.now() });
+                  setActiveRegion(null);
+                  setSelectedBone(null);
+                }}
+              >
+                Sıfırla
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Alt Talimatlar */}
-        <div className="instruction-toast" style={{ pointerEvents: 'auto' }}>
-          <Info size={18} />
-          <span className="desktop-instructions">Fare ile döndürün (Sol Tık), Kaydırın (Sağ Tık), Yakınlaştırın (Tekerlek).</span>
-          <span className="mobile-instructions">Döndür: Tek parmak | Yakınlaş/Kaydır: İki parmak</span>
-        </div>
+        {!isTourActive && (
+          <div className="instruction-toast" style={{ pointerEvents: 'auto' }}>
+            <Info size={18} />
+            <span className="desktop-instructions">Fare ile döndürün (Sol Tık), Kaydırın (Sağ Tık), Yakınlaştırın (Tekerlek).</span>
+            <span className="mobile-instructions">Döndür: Tek parmak | Yakınlaş/Kaydır: İki parmak</span>
+          </div>
+        )}
 
         {/* Credits (Ekip) */}
-        <div className="credits-panel" style={{ pointerEvents: 'auto' }}>
-          <div className="credits-title">Proje Ekibi</div>
-          <div className="credits-content">
-            <div className="credits-section">
-              <div className="credits-role">Öğretmen</div>
-              <div className="credits-name">Ümit Yaşar Kamacı</div>
-            </div>
-            <div className="credits-section">
-              <div className="credits-role">Öğrenciler</div>
-              <div className="credits-name">Efecan Hasırcı</div>
-              <div className="credits-name">Birol Aktaş</div>
-              <div className="credits-name">Mehmet Erdem</div>
-              <div className="credits-name">Yusuf Burak</div>
-              <div className="credits-name">Yusuf Emre Tuğtekin</div>
+        {!isTourActive && (
+          <div className="credits-panel" style={{ pointerEvents: 'auto' }}>
+            <div className="credits-title">Proje Ekibi</div>
+            <div className="credits-content">
+              <div className="credits-section">
+                <div className="credits-role">Koordinatör</div>
+                <div className="credits-name">Ümit Yaşar Kamacı</div>
+              </div>
+              <div className="credits-section">
+                <div className="credits-role">Öğrenciler</div>
+                <div className="credits-name">Efecan Hasırcı</div>
+                <div className="credits-name">Birol Aktaş</div>
+                <div className="credits-name">Mehmet Erdem</div>
+                <div className="credits-name">Yusuf Burak</div>
+                <div className="credits-name">Yusuf Emre Tuğtekin</div>
+              </div>
             </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );
 }
+
