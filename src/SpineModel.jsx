@@ -153,7 +153,7 @@ function VertebraDetail({ position, vertebraId, color, onClose }) {
   );
 }
 
-export default function SpineModel({ activeRegion, setActiveRegion, hoveredRegion, selectedBone, setSelectedBone, cameraViewTrigger, modelPath }) {
+export default function SpineModel({ activeRegion, setActiveRegion, hoveredRegion, selectedBone, setSelectedBone, cameraViewTrigger, modelPath, isTourActive }) {
   const { scene } = useGLTF(modelPath);
   const { camera, controls } = useThree();
 
@@ -668,7 +668,10 @@ export default function SpineModel({ activeRegion, setActiveRegion, hoveredRegio
     if (!controls || !targetData.current.active) return;
     const tData = targetData.current;
 
-    const lerpFactor = 1 - Math.exp(-5 * delta);
+    // Tur aktifken çok daha yavaş, yumuşak ve sinematik (1.8), normal tıklamalarda daha hızlı (5)
+    const speed = isTourActive ? 1.8 : 5;
+    const lerpFactor = 1 - Math.exp(-speed * delta);
+    
     controls.target.lerp(tData.target, lerpFactor);
     camera.position.lerp(tData.camera, lerpFactor);
     controls.update();
@@ -705,12 +708,65 @@ export default function SpineModel({ activeRegion, setActiveRegion, hoveredRegio
       cameraPos.set(distance, 0, 0);
     } else if (view === 'reset') {
       cameraPos.set(0, 0, 22);
+    } else if (view === '__tour__') {
+      // Tur modu: boneId ile pozisyonu bul, kamerayı o kemiğe odakla
+      const { boneId } = cameraViewTrigger;
+      const rawPos = bonePositions[boneId];
+      if (rawPos) {
+        const bonePos = rawPos.clone().multiplyScalar(modelScale).add(modelOffset);
+        targetData.current.target.copy(bonePos);
+        
+        // Kemik tipine göre özel sinematik kamera açıları (offset)
+        let offset = new THREE.Vector3(3, 2, 14); // Varsayılan
+        
+        switch(boneId) {
+          case 'mandibula':
+            offset.set(0, 1, 9); // Hafif önden ve yakından
+            break;
+          case 'c1':
+            offset.set(2, 1.5, 8); // Servikal için daha yakın ve hafif sağdan
+            break;
+          case 't6':
+            offset.set(4, 2, 12);
+            break;
+          case 'l3':
+            offset.set(5, 3, 14);
+            break;
+          case 'disk':
+            offset.set(3, 1, 8); // Disklere çok yakın
+            break;
+          case 'costae':
+            offset.set(8, 2, 16); // Göğüs kafesini görecek kadar geniş
+            break;
+          case 'klavikula':
+            offset.set(4, 3, 10);
+            break;
+          case 'humerus':
+            offset.set(10, 0, 14); // Kol için daha dışarıdan
+            break;
+          case 'pelvis':
+            offset.set(0, 4, 18); // Pelvis için tam önden ve geniş
+            break;
+          case 'femur':
+            offset.set(6, 2, 18);
+            break;
+          default:
+            offset.set(3, 2, 14);
+        }
+        
+        targetData.current.camera.copy(bonePos).add(offset);
+      } else {
+        targetData.current.target.set(0, 0, 0);
+        targetData.current.camera.set(0, 0, 22);
+      }
+      targetData.current.active = true;
+      return;
     }
 
     targetData.current.target.copy(target);
     targetData.current.camera.copy(cameraPos);
     targetData.current.active = true;
-  }, [cameraViewTrigger, camera, controls]);
+  }, [cameraViewTrigger, camera, controls, bonePositions, modelScale, modelOffset]);
 
   useEffect(() => { setExpandedVertebra(null); }, [activeRegion]);
 
@@ -723,6 +779,7 @@ export default function SpineModel({ activeRegion, setActiveRegion, hoveredRegio
   }, [activeRegion, bonePositions]);
 
   const handlePointerDown = (e) => {
+    if (isTourActive) return;
     targetData.current.active = false; // Stop camera animation if user interacts
     e.stopPropagation();
     if (e.object && e.object.userData.region) {
@@ -744,7 +801,7 @@ export default function SpineModel({ activeRegion, setActiveRegion, hoveredRegio
         <primitive
           object={scene}
           onPointerDown={handlePointerDown}
-          onPointerOver={() => { document.body.style.cursor = 'pointer'; }}
+          onPointerOver={() => { if (!isTourActive) document.body.style.cursor = 'pointer'; }}
           onPointerOut={() => { document.body.style.cursor = 'default'; }}
         />
 
