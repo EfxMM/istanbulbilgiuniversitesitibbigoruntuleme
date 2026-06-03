@@ -375,6 +375,19 @@ export default function App() {
                 : 'Bölgeleri incelemek için soldan seçin veya arayın, detay için kemiklere tıklayın.'}
             </p>
           </div>
+          <div className="header-actions">
+            {!isTourActive ? (
+              <button className="tour-header-btn" onClick={startTour}>
+                <Video size={16} />
+                <span>Turu Başlat</span>
+              </button>
+            ) : (
+              <button className="tour-header-close-btn" onClick={stopTour}>
+                <X size={16} />
+                <span>Turu Kapat</span>
+              </button>
+            )}
+          </div>
         </header>
 
         {/* Floating Tur Başlatma Butonu */}
