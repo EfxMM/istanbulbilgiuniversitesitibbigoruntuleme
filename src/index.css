@@ -1568,7 +1568,7 @@ body, html {
     display: none !important;
   }
   .tour-overlay {
-    bottom: 1rem;
+    bottom: 1.5rem;
     width: 96vw;
   }
   .tour-card-title { font-size: 0.95rem; }
