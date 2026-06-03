@@ -545,6 +545,41 @@ export default function App() {
                   {currentTourStep.title}
                 </h2>
                 <p className="tour-card-desc">{currentTourStep.description}</p>
+
+                {/* Önceki / Sonraki Kontrolleri */}
+                <div className="tour-controls" style={{ marginTop: '1.2rem' }}>
+                  <button
+                    className="tour-nav-btn"
+                    onClick={tourPrev}
+                    disabled={tourStep === 0}
+                  >
+                    <ChevronLeft size={18} />
+                    Önceki
+                  </button>
+                  <button className="tour-nav-btn tour-nav-pause" onClick={togglePause}>
+                    {isTourPaused
+                      ? <><Play size={14} /> Devam Et</>
+                      : <><Square size={14} /> Durdur</>
+                    }
+                  </button>
+                  
+                  {tourStep === TOUR_STEPS.length - 1 ? (
+                    <button
+                      className="tour-nav-btn"
+                      onClick={stopTour}
+                    >
+                      Bitir
+                    </button>
+                  ) : (
+                    <button
+                      className="tour-nav-btn"
+                      onClick={tourNext}
+                    >
+                      Sonraki
+                      <ChevronRight size={18} />
+                    </button>
+                  )}
+                </div>
               </div>
 
               {/* Alt İlerleme Çubuğu — duraklandığında donuyor */}
@@ -559,41 +594,6 @@ export default function App() {
                   }}
                 />
               </div>
-            </div>
-
-            {/* Önceki / Sonraki Kontrolleri */}
-            <div className="tour-controls">
-              <button
-                className="tour-nav-btn"
-                onClick={tourPrev}
-                disabled={tourStep === 0}
-              >
-                <ChevronLeft size={18} />
-                Önceki
-              </button>
-              <button className="tour-nav-btn tour-nav-pause" onClick={togglePause}>
-                {isTourPaused
-                  ? <><Play size={14} /> Devam Et</>
-                  : <><Square size={14} /> Durdur</>
-                }
-              </button>
-              
-              {tourStep === TOUR_STEPS.length - 1 ? (
-                <button
-                  className="tour-nav-btn"
-                  onClick={stopTour}
-                >
-                  Bitir
-                </button>
-              ) : (
-                <button
-                  className="tour-nav-btn"
-                  onClick={tourNext}
-                >
-                  Sonraki
-                  <ChevronRight size={18} />
-                </button>
-              )}
             </div>
           </div>
         )}
