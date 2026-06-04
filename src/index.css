@@ -66,6 +66,9 @@ body, html {
   left: 2rem;
   pointer-events: auto;
   animation: fadeInDown 0.8s ease-out;
+  display: flex;
+  align-items: flex-start;
+  gap: 1.5rem;
 }
 
 .header h1 {
@@ -85,7 +88,18 @@ body, html {
 }
 
 .header-actions {
-  display: none;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-left: 1rem;
+}
+
+/* Masaüstünde tur butonlarını gizle (çünkü altta büyük butonlar var) ama QR ikonunu göster */
+@media (min-width: 769px) {
+  .tour-header-btn,
+  .tour-header-close-btn {
+    display: none !important;
+  }
 }
 
 /* Left side navigation/menu */
@@ -1341,12 +1355,20 @@ body, html {
   gap: 1rem;
 }
 
-/* Tur Başlatma Butonu */
-.tour-start-btn {
+/* Alt Merkez Buton Grubu (Desktop) */
+.bottom-center-actions {
   position: absolute;
   bottom: 5.5rem;
   left: 50%;
   transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  z-index: 150;
+}
+
+/* Tur Başlatma Butonu */
+.tour-start-btn {
   display: flex;
   align-items: center;
   gap: 0.6rem;
@@ -1364,14 +1386,37 @@ body, html {
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
-  z-index: 150;
 }
 .tour-start-btn:hover {
   background: rgba(45, 45, 65, 0.85);
   border-color: rgba(255, 255, 255, 0.4);
   color: #ffffff;
   box-shadow: 0 6px 20px rgba(255, 255, 255, 0.1);
-  transform: translate(-50%, -3px);
+  transform: translateY(-3px);
+}
+
+/* QR Kod Masaüstü Butonu (Turu Başlat Yanında) */
+.qr-desktop-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(30, 30, 45, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #e0e0e0;
+  padding: 0.8rem;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+}
+.qr-desktop-btn:hover {
+  background: rgba(45, 45, 65, 0.85);
+  border-color: rgba(255, 255, 255, 0.4);
+  color: #ffffff;
+  box-shadow: 0 6px 20px rgba(255, 255, 255, 0.1);
+  transform: translateY(-3px);
 }
 
 /* Tur Durdurma Butonu */
@@ -1566,6 +1611,13 @@ body, html {
 .tour-controls-mobile { display: none; }
 .tour-controls-desktop { display: flex; }
 
+/* Desktop'ta mobilde görünen QR butonunu gizle */
+@media (min-width: 769px) {
+  .qr-mobile-only {
+    display: none !important;
+  }
+}
+
 /* Mobil bottom sheet — desktop'ta gizli */
 .tour-mobile-sheet {
   display: none;
@@ -1574,7 +1626,8 @@ body, html {
 /* ── Mobil Tur Overrides ── */
 @media (max-width: 768px) {
   .tour-start-btn,
-  .tour-stop-btn {
+  .tour-stop-btn,
+  .qr-desktop-btn {
     display: none !important;
   }
 
@@ -1639,5 +1692,180 @@ body, html {
 
   .tour-mobile-controls .tour-nav-btn.tour-nav-pause {
     min-width: 85px;
+  }
+}
+
+/* ── QR Kod Paylaşım Butonu ve Modalı ── */
+.qr-header-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #e2e8f0;
+  border-radius: 8px;
+  padding: 0.4rem 0.5rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.qr-header-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+.qr-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.qr-modal-content {
+  background: rgba(15, 15, 25, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 16px;
+  padding: 2rem;
+  width: 100%;
+  max-width: 360px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  animation: modalFadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.qr-modal-close {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  background: transparent;
+  border: none;
+  color: #8892b0;
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.qr-modal-close:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+.qr-code-wrapper {
+  background: #ffffff;
+  padding: 1rem;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0.5rem;
+  cursor: pointer;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s;
+}
+
+.qr-code-wrapper:hover {
+  transform: scale(1.02);
+  box-shadow: 0 4px 20px rgba(255, 255, 255, 0.1);
+}
+
+.qr-code-wrapper.zoomed {
+  transform: scale(1.05);
+  box-shadow: 0 10px 40px rgba(255, 255, 255, 0.2);
+}
+
+.qr-modal-content.zoomed {
+  max-width: 420px;
+}
+
+/* ── AR Modu Butonu ── */
+.ar-button {
+  position: absolute !important;
+  bottom: 2rem !important;
+  left: 2rem !important;
+  right: auto !important;
+  background: rgba(30, 30, 45, 0.7) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  color: #e0e0e0 !important;
+  font-family: 'Inter', sans-serif !important;
+  font-size: 0.9rem !important;
+  font-weight: 600 !important;
+  padding: 0.8rem 1.5rem !important;
+  border-radius: 30px !important;
+  cursor: pointer !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4) !important;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+  z-index: 1000 !important;
+}
+
+.ar-button:hover {
+  background: rgba(45, 45, 65, 0.85) !important;
+  border-color: rgba(255, 255, 255, 0.4) !important;
+  color: #ffffff !important;
+  transform: translateY(-3px) !important;
+}
+
+@media (max-width: 768px) {
+  .ar-button {
+    bottom: 5.5rem !important;
+    left: 1rem !important;
+    padding: 0.6rem 1.2rem !important;
+    font-size: 0.8rem !important;
+  }
+}
+
+/* QR Paylaşım Butonları */
+.qr-action-btn {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #e2e8f0;
+  padding: 0.6rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+}
+
+.qr-action-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.qr-action-btn.primary {
+  background: rgba(220, 38, 38, 0.8);
+  border-color: rgba(220, 38, 38, 1);
+  color: white;
+}
+
+.qr-action-btn.primary:hover {
+  background: rgba(220, 38, 38, 1);
+}
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
   }
 }
