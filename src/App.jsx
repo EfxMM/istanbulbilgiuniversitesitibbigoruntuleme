@@ -386,8 +386,7 @@ export default function App() {
               </button>
             ) : (
               <button className="tour-header-close-btn" onClick={stopTour}>
-                <X size={16} />
-                <span>Turu Kapat</span>
+                <span>Turu Bittri</span>
               </button>
             )}
             <button className="qr-header-btn qr-mobile-only" onClick={() => setIsQrModalOpen(true)} title="QR Kod ile Paylaş">
@@ -412,8 +411,7 @@ export default function App() {
         {/* Floating Turu Bitir Butonu */}
         {isTourActive && (
           <button className="tour-stop-btn" onClick={stopTour} style={{ pointerEvents: 'auto' }}>
-            <Square size={14} />
-            Turu Kapat
+            Turu Bitir
           </button>
         )}
 
