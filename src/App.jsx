@@ -8,9 +8,6 @@ import SpineModel from './SpineModel';
 import { pathologyData, vertebraData, regionData } from './data';
 import './index.css';
 
-// ═══════════════════════════════════════════
-// Tur Adımları (Sinematik Müze Turu Rotası)
-// ═══════════════════════════════════════════
 const TOUR_STEPS = [
   {
     regionId: 'mandibula',
@@ -122,7 +119,27 @@ export default function App() {
   const [isQrModalOpen, setIsQrModalOpen] = useState(false);
   const [isQrZoomed, setIsQrZoomed] = useState(false);
 
-  // ── Tur Modu State ──
+  const [showSplash, setShowSplash] = useState(true);
+  const [splashFading, setSplashFading] = useState(false);
+  const [modelLoaded, setModelLoaded] = useState(false);
+  const [loadingStatus, setLoadingStatus] = useState("Sistem bileşenleri yükleniyor...");
+
+  useEffect(() => {
+    const statusTimer1 = setTimeout(() => setLoadingStatus("3D İskelet modeli yükleniyor..."), 600);
+    const statusTimer2 = setTimeout(() => setLoadingStatus("Anatomik veri yapıları çözümleniyor..."), 1400);
+    const statusTimer3 = setTimeout(() => setLoadingStatus("Görselleştirme paneli hazırlandı..."), 2000);
+    const fadeTimer = setTimeout(() => setSplashFading(true), 2400);
+    const hideTimer = setTimeout(() => setShowSplash(false), 3200);
+    
+    return () => {
+      clearTimeout(statusTimer1);
+      clearTimeout(statusTimer2);
+      clearTimeout(statusTimer3);
+      clearTimeout(fadeTimer);
+      clearTimeout(hideTimer);
+    };
+  }, []);
+
   const [isTourActive,    setIsTourActive]    = useState(false);
   const [isTourPaused,    setIsTourPaused]    = useState(false);
   const [tourStep,        setTourStep]        = useState(0);
@@ -133,7 +150,6 @@ export default function App() {
   const tourTimerRef    = useRef(null);
   const tourStepRef     = useRef(0);   // interval stale closure olmadan güncel adımı tutar
 
-  // ── Yardımcılar ──
   const clearTourTimer = useCallback(() => {
     if (tourTimerRef.current) {
       clearInterval(tourTimerRef.current);
@@ -153,7 +169,6 @@ export default function App() {
     setTimeout(() => setTourCardVisible(true), 420);
   }, []);
 
-  // ── stopTour: turı tamamen kapat ──
   const stopTour = useCallback(() => {
     clearTourTimer();
     setTourCardVisible(false);
@@ -169,13 +184,11 @@ export default function App() {
     }, 350);
   }, [clearTourTimer]);
 
-  // ── startTimer: her zaman tourStepRef'ten okur, stale closure yok ──
   const startTimer = useCallback(() => {
     clearTourTimer();
     tourTimerRef.current = setInterval(() => {
       const next = tourStepRef.current + 1;
       if (next >= TOUR_STEPS.length) {
-        // Tur bitti, stopTour çağır ama ref callback'inin dışında
         setTimeout(() => {
           clearTourTimer();
           setTourCardVisible(false);
@@ -196,14 +209,12 @@ export default function App() {
     }, TOUR_DURATION);
   }, [clearTourTimer, applyTourStep]);
 
-  // ── pauseTour: timer’ı durdur, kartı açık bırak ──
   const pauseTour = useCallback(() => {
     clearTourTimer();
     setIsTourPaused(true);
     isTourPausedRef.current = true;
   }, [clearTourTimer]);
 
-  // ── resumeTour: timer’ı yeniden başlat ──
   const resumeTour = useCallback(() => {
     setIsTourPaused(false);
     isTourPausedRef.current = false;
@@ -215,7 +226,6 @@ export default function App() {
     else pauseTour();
   }, [pauseTour, resumeTour]);
 
-  // ── startTour ──
   const startTour = useCallback(() => {
     clearTourTimer();
     tourStepRef.current = 0;
@@ -227,7 +237,6 @@ export default function App() {
     startTimer();
   }, [clearTourTimer, applyTourStep, startTimer]);
 
-  // ── tourNext: timer’ı sıfırla + bir sonraki adıma geç ──
   const tourNext = useCallback(() => {
     const next = tourStepRef.current + 1;
     if (next >= TOUR_STEPS.length) { stopTour(); return; }
@@ -239,7 +248,6 @@ export default function App() {
     startTimer();
   }, [stopTour, applyTourStep, startTimer]);
 
-  // ── tourPrev: timer’ı sıfırla + bir önceki adıma dön ──
   const tourPrev = useCallback(() => {
     const prev = Math.max(0, tourStepRef.current - 1);
     tourStepRef.current = prev;
@@ -250,7 +258,6 @@ export default function App() {
     startTimer();
   }, [applyTourStep, startTimer]);
 
-  // Unmount temizliği
   useEffect(() => () => clearTourTimer(), [clearTourTimer]);
 
   const handleRegionSelect = (regionId) => {
@@ -300,6 +307,27 @@ export default function App() {
 
   return (
     <div className="app-container">
+      {/* ═══ SPLASH SCREEN ═══ */}
+      {showSplash && (
+        <div className={`splash-screen ${splashFading ? 'fade-out' : ''}`}>
+          <div className="splash-content">
+            {/* Academic Logo Shield */}
+            <div className="splash-logo-container">
+              <img src="/Istanbul_Bilgi_University_icon.png" alt="İstanbul Bilgi Üniversitesi Logo" className="splash-logo" />
+            </div>
+
+            {/* University Title & Project Subtitle */}
+            <h1 className="splash-title">İstanbul Bilgi Üniversitesi</h1>
+            <p className="splash-subtitle">Tıbbi Görüntüleme — 3D İskelet Anatomisi</p>
+
+            {/* Linear Progress Loader and Academic Status Message */}
+            <div className="splash-loader">
+              <div className="splash-loader-bar"></div>
+            </div>
+            <div className="splash-status">{loadingStatus}</div>
+          </div>
+        </div>
+      )}
       {/* 3D Canvas Alanı */}
       <div className="canvas-container">
         <ErrorBoundary>
@@ -328,6 +356,7 @@ export default function App() {
                 cameraViewTrigger={cameraViewTrigger}
                 modelPath="/fullpaket.glb"
                 isTourActive={isTourActive}
+                onLoaded={() => setModelLoaded(true)}
               />
               <ContactShadows position={[0, -4, 0]} opacity={0.4} scale={10} blur={2} far={10} />
             </React.Suspense>
