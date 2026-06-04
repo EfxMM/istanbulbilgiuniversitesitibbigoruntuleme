@@ -2,10 +2,14 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, Environment, ContactShadows } from '@react-three/drei';
 import { EffectComposer, Bloom } from '@react-three/postprocessing';
-import { Info, Search, Menu, X, Play, Square, ChevronLeft, ChevronRight, Video, Check } from 'lucide-react';
+import { Info, Search, Menu, X, Play, Square, ChevronLeft, ChevronRight, Video, Check, QrCode } from 'lucide-react';
+import { QRCodeSVG } from 'qrcode.react';
+import { XR, createXRStore } from '@react-three/xr';
 import SpineModel from './SpineModel';
 import { pathologyData, vertebraData, regionData } from './data';
 import './index.css';
+
+const store = createXRStore();
 
 // ═══════════════════════════════════════════
 // Tur Adımları (Sinematik Müze Turu Rotası)
@@ -118,6 +122,8 @@ export default function App() {
   const [cameraViewTrigger, setCameraViewTrigger] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isQrModalOpen, setIsQrModalOpen] = useState(false);
+  const [isQrZoomed, setIsQrZoomed] = useState(false);
 
   // ── Tur Modu State ──
   const [isTourActive,    setIsTourActive]    = useState(false);
@@ -299,48 +305,51 @@ export default function App() {
     <div className="app-container">
       {/* 3D Canvas Alanı */}
       <div className="canvas-container">
+        <button className="ar-button" onClick={() => store.enterAR()}>AR'da Görüntüle</button>
         <ErrorBoundary>
           <Canvas
             shadows
             camera={{ position: [0, 0, 40], fov: 45 }}
             gl={{ preserveDrawingBuffer: true }}
           >
-            <ambientLight intensity={0.25} />
-            <directionalLight
-              position={[10, 10, 5]}
-              intensity={0.6}
-              castShadow
-              shadow-mapSize={2048}
-            />
-            <pointLight position={[-10, -10, -5]} intensity={0.15} />
-            <Environment preset="city" />
-
-            <React.Suspense fallback={null}>
-              <SpineModel
-                activeRegion={activeRegion}
-                setActiveRegion={setActiveRegion}
-                hoveredRegion={hoveredRegion}
-                selectedBone={selectedBone}
-                setSelectedBone={setSelectedBone}
-                cameraViewTrigger={cameraViewTrigger}
-                modelPath="/fullpaket.glb"
-                isTourActive={isTourActive}
+            <XR store={store}>
+              <ambientLight intensity={0.25} />
+              <directionalLight
+                position={[10, 10, 5]}
+                intensity={0.6}
+                castShadow
+                shadow-mapSize={2048}
               />
-              <ContactShadows position={[0, -4, 0]} opacity={0.4} scale={10} blur={2} far={10} />
-            </React.Suspense>
+              <pointLight position={[-10, -10, -5]} intensity={0.15} />
+              <Environment preset="city" />
 
-            <EffectComposer disableNormalPass>
-              <Bloom mipmapBlur intensity={isTourActive ? 0.25 : 0.15} luminanceThreshold={0.4} luminanceSmoothing={0.1} />
-            </EffectComposer>
+              <React.Suspense fallback={null}>
+                <SpineModel
+                  activeRegion={activeRegion}
+                  setActiveRegion={setActiveRegion}
+                  hoveredRegion={hoveredRegion}
+                  selectedBone={selectedBone}
+                  setSelectedBone={setSelectedBone}
+                  cameraViewTrigger={cameraViewTrigger}
+                  modelPath="/fullpaket.glb"
+                  isTourActive={isTourActive}
+                />
+                <ContactShadows position={[0, -4, 0]} opacity={0.4} scale={10} blur={2} far={10} />
+              </React.Suspense>
 
-            <OrbitControls
-              makeDefault
-              enablePan={!isTourActive}
-              enableZoom={!isTourActive}
-              enableRotate={!isTourActive}
-              minDistance={0.1}
-              maxDistance={100}
-            />
+              <EffectComposer disableNormalPass>
+                <Bloom mipmapBlur intensity={isTourActive ? 0.25 : 0.15} luminanceThreshold={0.4} luminanceSmoothing={0.1} />
+              </EffectComposer>
+
+              <OrbitControls
+                makeDefault
+                enablePan={!isTourActive}
+                enableZoom={!isTourActive}
+                enableRotate={!isTourActive}
+                minDistance={0.1}
+                maxDistance={100}
+              />
+            </XR>
           </Canvas>
         </ErrorBoundary>
       </div>
@@ -387,15 +396,23 @@ export default function App() {
                 <span>Turu Kapat</span>
               </button>
             )}
+            <button className="qr-header-btn qr-mobile-only" onClick={() => setIsQrModalOpen(true)} title="QR Kod ile Paylaş">
+              <QrCode size={18} />
+            </button>
           </div>
         </header>
 
-        {/* Floating Tur Başlatma Butonu */}
+        {/* Floating Alt Merkez Butonlar (Desktop) */}
         {!isTourActive && (
-          <button className="tour-start-btn" onClick={startTour} style={{ pointerEvents: 'auto' }}>
-            <Video size={20} />
-            Turu Başlat
-          </button>
+          <div className="bottom-center-actions" style={{ pointerEvents: 'auto' }}>
+            <button className="tour-start-btn" onClick={startTour}>
+              <Video size={20} />
+              Turu Başlat
+            </button>
+            <button className="qr-desktop-btn" onClick={() => setIsQrModalOpen(true)} title="Mobil ile Paylaş">
+              <QrCode size={20} />
+            </button>
+          </div>
         )}
 
         {/* Floating Turu Bitir Butonu */}
@@ -676,6 +693,68 @@ export default function App() {
                 ? <button className="tour-nav-btn" onClick={stopTour}>Bitir</button>
                 : <button className="tour-nav-btn" onClick={tourNext}>Sonraki<ChevronRight size={16} /></button>
               }
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 📷 QR KOD / PAYLAŞ MODAL */}
+      {isQrModalOpen && (
+        <div className="qr-modal-overlay" onClick={() => { setIsQrModalOpen(false); setIsQrZoomed(false); }}>
+          <div className={`qr-modal-content ${isQrZoomed ? 'zoomed' : ''}`} onClick={e => e.stopPropagation()}>
+            <button className="qr-modal-close" onClick={() => { setIsQrModalOpen(false); setIsQrZoomed(false); }}>
+              <X size={20} />
+            </button>
+            <h2 style={{ margin: '0 0 1rem 0', fontSize: '1.2rem', color: '#e2e8f0', textAlign: 'center' }}>Siteyi Paylaş</h2>
+            
+            <div className={`qr-code-wrapper ${isQrZoomed ? 'zoomed' : ''}`} onClick={() => setIsQrZoomed(!isQrZoomed)} title="Büyütmek/Küçültmek için tıklayın">
+              <QRCodeSVG
+                value={window.location.hostname === 'localhost' ? 'https://istanbulbilgiuniversitesitibbigorun.vercel.app/' : window.location.href}
+                size={isQrZoomed ? (window.innerWidth <= 768 ? 260 : 340) : (window.innerWidth <= 768 ? 180 : 280)}
+                bgColor={"#ffffff"}
+                fgColor={"#dc2626"}
+                level={"H"}
+                includeMargin={false}
+                imageSettings={{
+                  src: "/Istanbul_Bilgi_University_icon.png",
+                  x: undefined,
+                  y: undefined,
+                  height: isQrZoomed ? 60 : 48,
+                  width: isQrZoomed ? 60 : 48,
+                  excavate: true,
+                }}
+              />
+            </div>
+            
+            <p className="qr-modal-hint" style={{ marginTop: '0.5rem', marginBottom: '1.2rem', fontSize: '0.8rem', color: '#8892b0', textAlign: 'center', lineHeight: 1.4 }}>
+              Büyütmek için QR koda tıklayın veya yandaki arkadaşınıza okutun.
+            </p>
+
+            <div className="qr-share-buttons" style={{ display: 'flex', gap: '10px', width: '100%' }}>
+              <button 
+                className="qr-action-btn"
+                onClick={() => {
+                  navigator.clipboard.writeText('https://istanbulbilgiuniversitesitibbigorun.vercel.app/');
+                  alert("Link kopyalandı!");
+                }}
+              >
+                Linki Kopyala
+              </button>
+              
+              {navigator.share && (
+                <button 
+                  className="qr-action-btn primary"
+                  onClick={() => {
+                    navigator.share({
+                      title: 'İskelet Anatomisi',
+                      text: 'Bu harika 3D iskelet anatomisi uygulamasını incele!',
+                      url: 'https://istanbulbilgiuniversitesitibbigorun.vercel.app/',
+                    }).catch(console.error);
+                  }}
+                >
+                  Paylaş
+                </button>
+              )}
             </div>
           </div>
         </div>
