@@ -10,6 +10,125 @@
   --accent-color: #4da6ff;
 }
 
+/* ═══ SPLASH SCREEN ═══ */
+.splash-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  background: radial-gradient(circle at center, #131722 0%, #07090e 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  transition: opacity 0.8s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.splash-screen.fade-out {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.splash-content {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.2rem;
+  max-width: 440px;
+  width: 90%;
+  animation: splashEnter 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes splashEnter {
+  from { opacity: 0; transform: translateY(15px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Institutional Logo Shield Container */
+.splash-logo-container {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 3px solid #dc2626;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+  margin-bottom: 0.4rem;
+}
+
+.splash-logo {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.splash-title {
+  font-family: 'Inter', sans-serif;
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: -0.01em;
+  text-align: center;
+  margin: 0;
+  line-height: 1.3;
+}
+
+.splash-subtitle {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #c5cbd9;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  text-align: center;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  padding: 6px 16px;
+  margin-top: 0.1rem;
+}
+
+.splash-loader {
+  width: 200px;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-top: 0.6rem;
+}
+
+.splash-loader-bar {
+  height: 100%;
+  width: 0%;
+  background: #dc2626;
+  border-radius: 2px;
+  animation: splashLoad 2.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+@keyframes splashLoad {
+  0% { width: 0%; }
+  35% { width: 45%; }
+  75% { width: 85%; }
+  100% { width: 100%; }
+}
+
+.splash-status {
+  font-size: 0.72rem;
+  color: #8c93a6;
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  height: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 0.3rem;
+  opacity: 0.8;
+}
+
 * {
   box-sizing: border-box;
   margin: 0;
@@ -1829,5 +1948,24 @@ body, html {
   to {
     opacity: 1;
     transform: scale(1) translateY(0);
+  }
+}
+
+/* ── Mobile Optimization for Academic Splash Screen ── */
+@media (max-width: 480px) {
+  .splash-title {
+    font-size: 1.3rem;
+  }
+  .splash-subtitle {
+    font-size: 0.72rem;
+    padding: 5px 12px;
+  }
+  .splash-logo-container {
+    width: 100px;
+    height: 100px;
+    padding: 10px;
+  }
+  .splash-loader {
+    width: 160px;
   }
 }
