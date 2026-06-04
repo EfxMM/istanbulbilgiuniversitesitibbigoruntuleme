@@ -4,12 +4,9 @@ import { OrbitControls, Environment, ContactShadows } from '@react-three/drei';
 import { EffectComposer, Bloom } from '@react-three/postprocessing';
 import { Info, Search, Menu, X, Play, Square, ChevronLeft, ChevronRight, Video, Check, QrCode } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
-import { XR, createXRStore } from '@react-three/xr';
 import SpineModel from './SpineModel';
 import { pathologyData, vertebraData, regionData } from './data';
 import './index.css';
-
-const store = createXRStore();
 
 // ═══════════════════════════════════════════
 // Tur Adımları (Sinematik Müze Turu Rotası)
@@ -305,51 +302,48 @@ export default function App() {
     <div className="app-container">
       {/* 3D Canvas Alanı */}
       <div className="canvas-container">
-        <button className="ar-button" onClick={() => store.enterAR()}>AR'da Görüntüle</button>
         <ErrorBoundary>
           <Canvas
             shadows
             camera={{ position: [0, 0, 40], fov: 45 }}
             gl={{ preserveDrawingBuffer: true }}
           >
-            <XR store={store}>
-              <ambientLight intensity={0.25} />
-              <directionalLight
-                position={[10, 10, 5]}
-                intensity={0.6}
-                castShadow
-                shadow-mapSize={2048}
+            <ambientLight intensity={0.25} />
+            <directionalLight
+              position={[10, 10, 5]}
+              intensity={0.6}
+              castShadow
+              shadow-mapSize={2048}
+            />
+            <pointLight position={[-10, -10, -5]} intensity={0.15} />
+            <Environment preset="city" />
+
+            <React.Suspense fallback={null}>
+              <SpineModel
+                activeRegion={activeRegion}
+                setActiveRegion={setActiveRegion}
+                hoveredRegion={hoveredRegion}
+                selectedBone={selectedBone}
+                setSelectedBone={setSelectedBone}
+                cameraViewTrigger={cameraViewTrigger}
+                modelPath="/fullpaket.glb"
+                isTourActive={isTourActive}
               />
-              <pointLight position={[-10, -10, -5]} intensity={0.15} />
-              <Environment preset="city" />
+              <ContactShadows position={[0, -4, 0]} opacity={0.4} scale={10} blur={2} far={10} />
+            </React.Suspense>
 
-              <React.Suspense fallback={null}>
-                <SpineModel
-                  activeRegion={activeRegion}
-                  setActiveRegion={setActiveRegion}
-                  hoveredRegion={hoveredRegion}
-                  selectedBone={selectedBone}
-                  setSelectedBone={setSelectedBone}
-                  cameraViewTrigger={cameraViewTrigger}
-                  modelPath="/fullpaket.glb"
-                  isTourActive={isTourActive}
-                />
-                <ContactShadows position={[0, -4, 0]} opacity={0.4} scale={10} blur={2} far={10} />
-              </React.Suspense>
+            <EffectComposer disableNormalPass>
+              <Bloom mipmapBlur intensity={isTourActive ? 0.25 : 0.15} luminanceThreshold={0.4} luminanceSmoothing={0.1} />
+            </EffectComposer>
 
-              <EffectComposer disableNormalPass>
-                <Bloom mipmapBlur intensity={isTourActive ? 0.25 : 0.15} luminanceThreshold={0.4} luminanceSmoothing={0.1} />
-              </EffectComposer>
-
-              <OrbitControls
-                makeDefault
-                enablePan={!isTourActive}
-                enableZoom={!isTourActive}
-                enableRotate={!isTourActive}
-                minDistance={0.1}
-                maxDistance={100}
-              />
-            </XR>
+            <OrbitControls
+              makeDefault
+              enablePan={!isTourActive}
+              enableZoom={!isTourActive}
+              enableRotate={!isTourActive}
+              minDistance={0.1}
+              maxDistance={100}
+            />
           </Canvas>
         </ErrorBoundary>
       </div>
