@@ -110,11 +110,11 @@ Bu proje, değerli öğretmenimizin rehberliğinde ve öğrencilerimizin yoğun 
 
 *   **Proje Koordinatörü:** Ümit Yaşar Kamacı
 *   **Geliştirici Öğrenciler:**
-    *   Efecan Hasırcı
-    *   Birol Aktaş
-    *   Mehmet Erdem
-    *   Yusuf Burak
-    *   Yusuf Emre Tuğtekin
+    *   Efecan H.
+    *   Birol A.
+    *   Mehmet E.
+    *   Yusuf B.
+    *   Yusuf Emre T.
 
 ---
 
